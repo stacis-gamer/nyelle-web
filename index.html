@@ -18,7 +18,6 @@
         /* --- OVERLAYS --- */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 999; }
         .auth-box { background: var(--bg-dark); padding: 35px 25px; border-radius: 20px; border: 2px solid #111; box-shadow: 0px 10px 30px rgba(0,0,0,0.8); text-align: center; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto;}
-        
         .context-menu { position: fixed; background: #18191b; border: 1px solid #313338; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: none; flex-direction: column; z-index: 1000; min-width: 150px; padding: 6px; }
         .menu-item { padding: 8px 12px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 8px; transition: 0.1s; }
         .menu-item:hover { background: var(--accent); }
@@ -29,7 +28,6 @@
         .app-layout { display: flex; width: 100%; height: 100%; }
         .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; }
         @media (min-width: 800px) { .sidebar { display: flex; } }
-        
         .sidebar-header { padding: 20px; border-bottom: 2px solid var(--bg-darker); display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
         .sidebar-header:hover { background: var(--bg-panel); }
         .avatar-ring { width: 45px; height: 45px; background: var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 3px solid var(--text-main); overflow: hidden; flex-shrink: 0; box-shadow: 0px 4px 0px var(--accent-shadow); font-weight: bold; font-size: 18px; }
@@ -66,8 +64,8 @@
         .react-badge { position: absolute; bottom: -18px; left: 10px; background: var(--bg-darker); border: 1px solid #111; border-radius: 12px; padding: 2px 6px; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 5; color: white; }
         .sender-name-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; margin-left: 10px; font-weight: bold;}
 
-        /* --- NEW: READ AVATAR CLUSTER --- */
-        .readers-cluster { display: flex; justify-content: flex-end; margin-top: 5px; padding-right: 5px; height: 16px; }
+        /* --- READ AVATAR CLUSTER --- */
+        .readers-cluster { display: flex; margin-top: 5px; padding-right: 5px; height: 16px; }
         .tiny-reader { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--bg-panel); margin-left: -8px; background: var(--bg-darker); display: flex; justify-content: center; align-items: center; overflow: hidden; font-size: 10px; box-shadow: 0px 2px 4px rgba(0,0,0,0.4);}
         .tiny-reader img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -123,7 +121,7 @@
             <h2 id="gc-info-title">Group Name</h2>
             <p style="margin-bottom: 15px;">Active Roster</p>
             <div id="gc-members-list" style="display:flex; flex-direction:column; gap:10px; text-align:left; background:var(--bg-panel); padding:15px; border-radius:10px; margin-bottom:15px;">
-                </div>
+            </div>
             <button onclick="document.getElementById('group-info-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: #313338; box-shadow: 0 4px 0 #111;">CLOSE</button>
         </div>
     </div>
@@ -193,6 +191,7 @@
 
     <script>
         let API_URL = '', currentUserCode = localStorage.getItem('nyelle_user_code'), currentUserName = localStorage.getItem('nyelle_user_name'), currentUserPfp = localStorage.getItem('nyelle_user_pfp'), ws, activeChat = 'NYELLE_CORE', chatHistories = { 'NYELLE_CORE': [] }, friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {}, groupsList = JSON.parse(localStorage.getItem('nyelle_groups')) || {}, activeMenuMsgId = null, activeMenuFriendCode = null;
+        let groupMembersCache = {}; // Fix for history loading
 
         const firebaseConfig = { apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs", projectId: "zane-c0ce1", appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c" };
         firebase.initializeApp(firebaseConfig);
@@ -260,7 +259,6 @@
             }
         }
 
-        // --- NEW: FETCH GROUP INFO ---
         async function showGroupInfo() {
             if(!groupsList[activeChat]) return;
             try {
@@ -268,8 +266,7 @@
                 const data = await res.json();
                 if(data.success) {
                     document.getElementById('gc-info-title').textContent = data.name;
-                    const list = document.getElementById('gc-members-list');
-                    list.innerHTML = '';
+                    const list = document.getElementById('gc-members-list'); list.innerHTML = '';
                     data.members.forEach(m => {
                         list.innerHTML += `<div style="display:flex; align-items:center; gap:10px; font-weight:bold; font-size:14px;"><div class="avatar-mini" style="width:30px; height:30px;">${renderPfp(m.pfp)}</div> ${m.name}</div>`;
                     });
@@ -309,15 +306,14 @@
                         if (msgObj) msgObj.delivered = data.delivered;
                         return; 
                     }
+                    
                     removeTyping();
                     if (!chatHistories[targetRoom]) chatHistories[targetRoom] = [];
-                    
-                    // New array to store who has read this specific message
                     chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false, pfp: data.pfp, senderName: data.sender_name, readers: [] });
                     
                     if (activeChat === targetRoom) {
                         addMessageToUI(data.text, false, data.msg_id, targetRoom, false, false, data.sender_name, data.pfp, []);
-                        if (from !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "read", target_room: targetRoom, msg_id: data.msg_id, pfp: currentUserPfp }));
+                        if (from !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "read", target_user: from, target_room: targetRoom, msg_id: data.msg_id, pfp: currentUserPfp }));
                     } else {
                         const f = document.getElementById(`friend-${targetRoom}`); if(f) f.style.boxShadow = "inset 4px 0px 0px var(--accent-highlight)";
                     }
@@ -328,16 +324,31 @@
                     if (chatHistories[room] && chatHistories[room].length > 0) {
                         chatHistories[room].forEach(m => { if(m.isSelf) m.read = true; });
                         
-                        // NEW: Add Reader PFP to the specific message if provided
+                        // DYNAMIC TINY AVATAR RENDERER
                         if(data.msg_id && data.pfp) {
                             const targetMsg = chatHistories[room].find(m => m.id === data.msg_id) || chatHistories[room][chatHistories[room].length - 1];
-                            if(targetMsg) {
+                            if(targetMsg && targetMsg.isSelf) {
                                 if(!targetMsg.readers) targetMsg.readers = [];
-                                if(!targetMsg.readers.includes(data.pfp)) targetMsg.readers.push(data.pfp);
+                                if(!targetMsg.readers.includes(data.pfp)) {
+                                    targetMsg.readers.push(data.pfp);
+                                    if (activeChat === room) {
+                                        const msgBubble = document.getElementById(`msg-${targetMsg.id}`);
+                                        if (msgBubble) {
+                                            const container = msgBubble.parentElement;
+                                            let cluster = container.querySelector('.readers-cluster');
+                                            if (!cluster) {
+                                                cluster = document.createElement('div');
+                                                cluster.className = 'readers-cluster';
+                                                container.appendChild(cluster);
+                                            }
+                                            cluster.innerHTML += `<div class="tiny-reader">${renderPfp(data.pfp)}</div>`;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-                    if (activeChat === room) switchChat(room); // Re-renders to show the updated tiny avatars
+                    if (activeChat === room) document.querySelectorAll('.read-receipt').forEach(el => { el.innerHTML = '✓✓'; el.classList.add('read'); });
                 } else if (data.type === 'reaction') applyReactionToUI(data.msg_id, data.emoji);
             };
             ws.onclose = () => setTimeout(connectWebSocket, 3000);
@@ -359,7 +370,6 @@
             let nameLabel = '';
             if (!isSelf && isGroup && senderName) nameLabel = `<div class="sender-name-label">${senderName}</div>`;
 
-            // TINY AVATAR CLUSTER RENDERER
             let readersHtml = '';
             if (isSelf && readers && readers.length > 0) {
                 const tinyPfps = readers.map(p => `<div class="tiny-reader">${renderPfp(p)}</div>`).join('');
@@ -367,7 +377,7 @@
             }
 
             wrap.innerHTML = `<div class="bubble-pfp">${pfpHtml}</div>
-                <div style="display:flex; flex-direction:column; max-width:100%;">
+                <div style="display:flex; flex-direction:column; max-width:100%; align-items: ${isSelf ? 'flex-end' : 'flex-start'};">
                     ${nameLabel}
                     <div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${msgId}"><p>${text}</p>${receipt}</div>
                     ${readersHtml}
@@ -398,7 +408,7 @@
             } 
         }
 
-        function switchChat(code) {
+        async function switchChat(code) {
             activeChat = code; document.querySelectorAll('.friend-item').forEach(i => { i.classList.remove('active'); i.style.boxShadow = "none"; });
             const item = document.getElementById(`friend-${code}`); if(item) item.classList.add('active'); 
             document.getElementById('chat-content').innerHTML = '';
@@ -406,11 +416,20 @@
             let name, pfp;
             const isGroup = !!groupsList[code];
             if(code === 'NYELLE_CORE') { name = 'Nyelle'; pfp = 'N'; document.getElementById('gc-info-btn').style.display = 'none'; }
-            else if(isGroup) { name = groupsList[code].name; pfp = '🌐'; document.getElementById('gc-info-btn').style.display = 'block'; }
+            else if(isGroup) { name = groupsList[code].name; pfp = '🌐'; document.getElementById('gc-info-btn').style.display = 'flex'; }
             else { name = friendsList[code].name; pfp = renderPfp(friendsList[code].pfp); document.getElementById('gc-info-btn').style.display = 'none'; }
 
             document.getElementById('mob-name').textContent = name;
             document.getElementById('mob-pfp').innerHTML = pfp;
+
+            // FIX: Pre-fetch group info so history knows the PFPs
+            if (isGroup && !groupMembersCache[code]) {
+                try {
+                    const res = await fetch(`${API_URL}/api/groups/${code}/info`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                    const data = await res.json();
+                    if(data.success) { groupMembersCache[code] = {}; data.members.forEach(m => { groupMembersCache[code][m.code] = m; }); }
+                } catch(e){}
+            }
             
             if (!chatHistories[code] || chatHistories[code].length === 0) {
                 loadChatHistory(code, code === 'NYELLE_CORE' ? currentUserCode : (isGroup ? code : `DM_${[currentUserCode, code].sort().join('_')}`));
@@ -419,9 +438,8 @@
             }
 
             if (code !== 'NYELLE_CORE' && ws && ws.readyState === 1) {
-                // If opening a chat, send a read receipt for the latest message so sender gets our tiny PFP
                 const lastMsg = chatHistories[code] && chatHistories[code].length > 0 ? chatHistories[code][chatHistories[code].length - 1] : null;
-                ws.send(JSON.stringify({ type: "read", target_room: code, msg_id: lastMsg ? lastMsg.id : null, pfp: currentUserPfp }));
+                ws.send(JSON.stringify({ type: "read", target_user: code, target_room: code, msg_id: lastMsg ? lastMsg.id : null, pfp: currentUserPfp }));
             }
         }
 
@@ -429,20 +447,25 @@
             try {
                 const res = await fetch(`${API_URL}/history/${remoteId}`, { headers: {'ngrok-skip-browser-warning': 'true'} });
                 const data = await res.json();
-                chatHistories[localKey] = (data.history || []).map(m => ({ id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode, read: true, delivered: true, readers: [] }));
-                chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey, m.read, m.delivered, null, null, m.readers));
+                chatHistories[localKey] = (data.history || []).map(m => {
+                    let sName = null, sPfp = null;
+                    // Inject historical names/pfps using our new cache!
+                    if (groupsList[localKey] && groupMembersCache[localKey] && groupMembersCache[localKey][m.role]) {
+                        sName = groupMembersCache[localKey][m.role].name; sPfp = groupMembersCache[localKey][m.role].pfp;
+                    } else if (m.role === 'Nyelle') { sName = 'Nyelle'; sPfp = 'N'; } 
+                    else if (friendsList[m.role]) { sName = friendsList[m.role].name; sPfp = friendsList[m.role].pfp; }
+
+                    return { id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode, read: true, delivered: true, readers: [], senderName: sName, pfp: sPfp };
+                });
+                chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey, m.read, m.delivered, m.senderName, m.pfp, m.readers));
             } catch(e) {}
         }
 
         function refreshLists() {
             const dmList = document.getElementById('dm-list'); dmList.innerHTML = '';
-            Object.entries(friendsList).forEach(([code, info]) => {
-                dmList.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">${renderPfp(info.pfp)}</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div><div class="status-dot online"></div></div>`;
-            });
+            Object.entries(friendsList).forEach(([code, info]) => { dmList.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">${renderPfp(info.pfp)}</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div><div class="status-dot online"></div></div>`; });
             const gcList = document.getElementById('gc-list'); gcList.innerHTML = '';
-            Object.entries(groupsList).forEach(([code, info]) => {
-                gcList.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">🌐</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div></div>`;
-            });
+            Object.entries(groupsList).forEach(([code, info]) => { gcList.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">🌐</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div></div>`; });
         }
 
         document.getElementById('start-dm-btn').onclick = async () => {
@@ -467,9 +490,7 @@
             addMessageToUI(text, true, tempId, activeChat, false, false, null, null, []);
             ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, text: text, msg_id: tempId, pfp: currentUserPfp, sender_name: currentUserName }));
             inputField.value = ''; 
-            
-            // Show typing indicator visually before server locks in queue
-            if (activeChat === 'NYELLE_CORE' || (groupsList[activeChat])) showTyping('NYELLE_CORE');
+            if (activeChat === 'NYELLE_CORE' || groupsList[activeChat]) showTyping('NYELLE_CORE');
         };
         inputField.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
 
