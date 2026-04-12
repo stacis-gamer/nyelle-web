@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nyelle Interface</title>
+    <title>Nyelle Social</title>
     <style>
         /* =========================================
            BASE RESET & VARIABLES
@@ -19,15 +19,15 @@
             --accent-highlight: #8ea1ff;
             --bubble-nyelle: #383a40;
             --bubble-nyelle-shadow: #1e1f22;
-            --bubble-nyelle-high: #4f525a;
             --text-main: #f2f3f5;
             --text-muted: #b5bac1;
+            --success: #23a559;
         }
 
         body { background-color: var(--bg-darker); height: 100vh; display: flex; overflow: hidden; color: var(--text-main); }
 
         /* =========================================
-           LOGIN & SETUP OVERLAYS
+           OVERLAYS (Login, Profile, Add Friend)
            ========================================= */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -35,53 +35,47 @@
             display: flex; justify-content: center; align-items: center;
             z-index: 999; 
         }
-
-        .auth-box {
-            background: var(--bg-dark); padding: 35px 25px; border-radius: 20px;
-            border: 2px solid #111; box-shadow: 0px 10px 30px rgba(0,0,0,0.8);
-            text-align: center; width: 90%; max-width: 400px;
-        }
-
-        .auth-box h2 { color: var(--text-main); margin-bottom: 5px; font-weight: 900; letter-spacing: 1px; }
+        .auth-box { background: var(--bg-dark); padding: 35px 25px; border-radius: 20px; border: 2px solid #111; box-shadow: 0px 10px 30px rgba(0,0,0,0.8); text-align: center; width: 90%; max-width: 400px; }
+        .auth-box h2 { color: var(--text-main); margin-bottom: 5px; font-weight: 900; }
         .auth-box p { color: var(--text-muted); margin-bottom: 20px; font-size: 14px; }
         
         .avatar-picker { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .avatar-option {
-            font-size: 30px; cursor: pointer; padding: 10px; background: var(--bg-darker);
-            border-radius: 50%; border: 3px solid transparent; transition: all 0.2s;
-            box-shadow: inset 0px 4px 6px rgba(0,0,0,0.5); width: 55px; height: 55px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .avatar-option:hover { transform: translateY(-3px); }
-        .avatar-option.selected { border-color: var(--accent); background: var(--bg-panel); box-shadow: 0px 0px 15px rgba(88, 101, 242, 0.5); }
+        .avatar-option, .custom-pfp-preview { width: 55px; height: 55px; font-size: 30px; cursor: pointer; padding: 10px; background: var(--bg-darker); border-radius: 50%; border: 3px solid transparent; display: flex; align-items: center; justify-content: center; }
+        .avatar-option.selected, .custom-pfp-preview.selected { border-color: var(--accent); background: var(--bg-panel); box-shadow: 0px 0px 15px rgba(88, 101, 242, 0.5); }
+        .custom-pfp-preview { object-fit: cover; display: none; padding: 0; }
 
-        .upload-section { margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .upload-btn { background: #1e1f22; border: 2px dashed #4f525a; color: var(--text-muted); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
-        .upload-btn:hover { border-color: var(--accent); color: white; }
+        .upload-btn { background: #1e1f22; border: 2px dashed #4f525a; color: var(--text-muted); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; display: inline-block; margin-bottom: 20px; }
         
-        .custom-pfp-preview { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; display: none; border: 3px solid var(--accent); box-shadow: 0px 0px 15px rgba(88, 101, 242, 0.5); }
-
         /* =========================================
-           LAYOUT & RESPONSIVE SIDEBAR
+           LAYOUT & NEW SOCIAL SIDEBAR
            ========================================= */
         .app-layout { display: flex; width: 100%; height: 100%; }
-        .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; padding: 20px; box-shadow: inset -4px 0px 0px rgba(0,0,0,0.2); }
+        .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; box-shadow: inset -4px 0px 0px rgba(0,0,0,0.2); }
         @media (min-width: 800px) { .sidebar { display: flex; } }
+        
+        .sidebar-header { padding: 20px; border-bottom: 2px solid var(--bg-darker); display: flex; align-items: center; gap: 15px; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 15px 10px; }
+        
+        .section-title { font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 5px 10px; }
+        
+        /* Friend List Items */
+        .friend-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.1s; margin-bottom: 5px; }
+        .friend-item:hover { background: var(--bg-panel); }
+        .friend-item.active { background: var(--accent); color: white; }
+        .friend-item .avatar-mini { width: 35px; height: 35px; background: var(--bg-darker); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; border: 2px solid #111; overflow: hidden;}
+        .friend-item .avatar-mini img { width: 100%; height: 100%; object-fit: cover; }
+        .friend-item .status-dot { width: 10px; height: 10px; background: var(--text-muted); border-radius: 50%; margin-left: auto; border: 2px solid var(--bg-dark); }
+        .friend-item .status-dot.online { background: var(--success); }
+        .friend-item.active .status-dot { border-color: var(--accent); }
+
         .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--bg-panel); background-image: radial-gradient(var(--bg-darker) 1px, transparent 1px); background-size: 20px 20px; position: relative; }
         .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; gap: 15px; box-shadow: 0px 4px 15px rgba(0,0,0,0.4); z-index: 10; }
         @media (min-width: 800px) { .mobile-header { display: none; } }
 
-        .avatar-ring { width: 50px; height: 50px; background: var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 3px solid var(--text-main); box-shadow: 0px 4px 0px var(--accent-shadow); font-weight: 900; font-size: 22px; }
-        .status-box { background: var(--bg-darker); border-radius: 12px; padding: 15px; margin-top: 20px; border: 2px solid #111; box-shadow: inset 0px 3px 0px rgba(255,255,255,0.05), 0px 4px 0px #111; }
-        .status-title { font-size: 12px; color: var(--accent); text-transform: uppercase; font-weight: 900; letter-spacing: 1px; margin-bottom: 5px; }
-        .status-val { font-size: 16px; font-weight: bold; margin-bottom: 10px; text-transform: capitalize; }
-
         /* =========================================
-           CHAT BOX & BUBBLES WITH PFPs
+           CHAT BOX & BUBBLES
            ========================================= */
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; align-items: center; scrollbar-width: thin; scrollbar-color: var(--accent) var(--bg-dark); }
-        .chat-container::-webkit-scrollbar { width: 8px; }
-        .chat-container::-webkit-scrollbar-thumb { background-color: var(--accent); border-radius: 10px; }
         .chat-content { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 18px; }
 
         .msg-wrapper { display: flex; gap: 10px; align-items: flex-end; max-width: 85%; }
@@ -89,25 +83,27 @@
         .msg-nyelle { align-self: flex-start; }
         .msg-user { align-self: flex-end; flex-direction: row-reverse; }
 
-        .bubble-pfp { font-size: 20px; background: var(--bg-darker); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border: 2px solid #111; box-shadow: 0px 3px 5px rgba(0,0,0,0.3); overflow: hidden; }
+        .bubble-pfp { font-size: 20px; background: var(--bg-darker); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border: 2px solid #111; box-shadow: 0px 3px 5px rgba(0,0,0,0.3); overflow: hidden; flex-shrink: 0;}
         .bubble-pfp img { width: 100%; height: 100%; object-fit: cover; } 
 
-        .toon-bubble { padding: 14px 18px; border-radius: 20px; font-weight: 600; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
-        .nyelle-msg { background: var(--bubble-nyelle); border: 2px solid var(--bubble-nyelle-shadow); border-bottom-left-radius: 4px; box-shadow: inset 0px 4px 0px var(--bubble-nyelle-high), 0px 6px 0px var(--bubble-nyelle-shadow), 0px 8px 10px rgba(0,0,0,0.2); }
-        .user-msg { background: var(--accent); border: 2px solid var(--accent-shadow); border-bottom-right-radius: 4px; box-shadow: inset 0px 4px 0px var(--accent-highlight), 0px 6px 0px var(--accent-shadow), 0px 8px 10px rgba(0,0,0,0.2); }
+        .toon-bubble { padding: 14px 18px; border-radius: 20px; font-weight: 600; font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative;}
+        .nyelle-msg { background: var(--bubble-nyelle); border: 2px solid var(--bubble-nyelle-shadow); border-bottom-left-radius: 4px; box-shadow: 0px 6px 0px var(--bubble-nyelle-shadow); }
+        .user-msg { background: var(--accent); border: 2px solid var(--accent-shadow); border-bottom-right-radius: 4px; box-shadow: 0px 6px 0px var(--accent-shadow); }
+
+        .read-receipt { font-size: 11px; color: rgba(255,255,255,0.5); position: absolute; bottom: -20px; right: 0; font-weight: bold;}
+        .read-receipt.read { color: #4facfe; }
 
         /* =========================================
-           INPUT AREA & BUTTONS
+           INPUT AREA
            ========================================= */
         .input-wrapper { padding: 15px 20px 25px 20px; background: linear-gradient(0deg, var(--bg-darker) 0%, transparent 100%); display: flex; justify-content: center; }
         .input-container { width: 100%; max-width: 800px; display: flex; gap: 12px; }
         .toon-input { flex: 1; background: var(--bg-darker); border: 3px solid #111; border-radius: 18px; padding: 0 20px; color: white; font-size: 16px; font-weight: bold; outline: none; box-shadow: inset 0px 6px 10px rgba(0,0,0,0.5); }
         .toon-input:focus { border-color: var(--accent); }
-        
-        .toon-btn { background: var(--accent); color: white; border: 2px solid var(--accent-shadow); border-radius: 16px; padding: 10px 25px; font-size: 16px; font-weight: 900; letter-spacing: 1px; cursor: pointer; box-shadow: inset 0px 4px 0px var(--accent-highlight), 0px 6px 0px var(--accent-shadow), 0px 8px 10px rgba(0,0,0,0.3); transition: all 0.1s ease; }
-        .toon-btn:active { transform: translateY(6px); box-shadow: inset 0px 2px 0px var(--accent-highlight), 0px 0px 0px var(--accent-shadow); }
-        .login-submit-btn { width: 100%; padding: 15px; }
+        .toon-btn { background: var(--accent); color: white; border: 2px solid var(--accent-shadow); border-radius: 16px; padding: 10px 20px; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0px 6px 0px var(--accent-shadow); transition: 0.1s; }
+        .toon-btn:active { transform: translateY(6px); box-shadow: 0px 0px 0px var(--accent-shadow); }
 
+        /* Typing animation */
         .typing-dots { display: flex; gap: 4px; align-items: center; height: 20px; }
         .dot { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         .dot:nth-child(1) { animation-delay: -0.32s; }
@@ -122,8 +118,8 @@
             <h2>System Access</h2>
             <p>Enter your 10-character code.</p>
             <input type="text" id="access-code" class="toon-input" placeholder="e.g. A9X7B2P4MM" style="margin-bottom: 15px; padding: 15px; text-align: center; letter-spacing: 2px; text-transform: uppercase; width: 100%;">
-            <button id="login-btn" class="toon-btn login-submit-btn">AUTHENTICATE</button>
-            <p id="login-error" style="color: #da373c; display: none; margin-top: 15px; font-weight: bold; font-size: 14px;"></p>
+            <button id="login-btn" class="toon-btn" style="width: 100%; padding: 15px;">AUTHENTICATE</button>
+            <p id="login-error" style="color: #da373c; display: none; margin-top: 15px; font-weight: bold;"></p>
         </div>
     </div>
 
@@ -131,54 +127,68 @@
         <div class="auth-box">
             <h2>Welcome, <span id="welcome-name" style="color: var(--accent);">User</span>!</h2>
             <p>Choose your avatar or upload a custom one.</p>
-            
             <div class="avatar-picker">
                 <div class="avatar-option selected" onclick="selectAvatar(this, '😎')">😎</div>
                 <div class="avatar-option" onclick="selectAvatar(this, '👾')">👾</div>
                 <div class="avatar-option" onclick="selectAvatar(this, '🐱')">🐱</div>
                 <img id="custom-preview" class="custom-pfp-preview" src="">
             </div>
+            <label for="custom-pfp-upload" class="upload-btn">📷 Upload Picture</label>
+            <input type="file" id="custom-pfp-upload" accept="image/*" style="display: none;">
+            <button id="finish-setup-btn" class="toon-btn" style="width: 100%; padding: 15px;">ENTER SYSTEM</button>
+        </div>
+    </div>
 
-            <div class="upload-section">
-                <label for="custom-pfp-upload" class="upload-btn">📷 Upload Picture</label>
-                <input type="file" id="custom-pfp-upload" accept="image/*" style="display: none;">
-            </div>
-
-            <button id="finish-setup-btn" class="toon-btn login-submit-btn">ENTER SYSTEM</button>
+    <div id="add-friend-overlay" class="overlay" style="display: none;">
+        <div class="auth-box">
+            <h2>Add a Friend</h2>
+            <p>Enter their 10-character network code to start a DM.</p>
+            <input type="text" id="friend-code-input" class="toon-input" placeholder="e.g. FRIENDCODE1" style="margin-bottom: 15px; padding: 15px; text-align: center; letter-spacing: 1px; text-transform: uppercase; width: 100%;">
+            <input type="text" id="friend-name-input" class="toon-input" placeholder="Nickname (e.g. Abhinav)" style="margin-bottom: 15px; padding: 15px; text-align: center; width: 100%;">
+            <button id="start-dm-btn" class="toon-btn" style="width: 100%; padding: 15px; margin-bottom: 10px;">ADD TO NETWORK</button>
+            <button onclick="document.getElementById('add-friend-overlay').style.display='none'" class="toon-btn" style="width: 100%; padding: 15px; background: #da373c; border-color: #a1282c; box-shadow: 0px 6px 0px #a1282c;">CANCEL</button>
         </div>
     </div>
 
     <div class="app-layout">
+        
         <aside class="sidebar">
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
-                <div class="avatar-ring">N</div>
+            <div class="sidebar-header">
+                <div class="avatar-ring" style="width: 45px; height: 45px; font-size: 18px;" id="my-sidebar-pfp">N</div>
                 <div>
-                    <h2 style="font-weight: 900; letter-spacing: 1px;">Nyelle</h2>
-                    <p style="color: #23a559; font-weight: bold; font-size: 13px;">● System Online</p>
+                    <h2 style="font-weight: 900; font-size: 16px;" id="my-sidebar-name">User</h2>
+                    <p style="color: var(--success); font-weight: bold; font-size: 12px;">● Online</p>
                 </div>
             </div>
-            <h3 style="color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Live Telemetry</h3>
-            <div class="status-box">
-                <div class="status-title">Current Location</div>
-                <div class="status-val" id="desk-loc">Tracking...</div>
-                <div class="status-title">Current Activity</div>
-                <div class="status-val" id="desk-act">Tracking...</div>
-                <div class="status-title">Biological Mood</div>
-                <div class="status-val" id="desk-mood" style="margin-bottom: 0;">Tracking...</div>
+            
+            <div class="sidebar-content">
+                <div class="section-title">AI Core</div>
+                <div class="friend-item active" id="friend-NYELLE_CORE" onclick="switchChat('NYELLE_CORE')">
+                    <div class="avatar-mini" style="background: var(--accent); color: white;">N</div>
+                    <span style="font-weight: bold;">Nyelle</span>
+                    <div class="status-dot online"></div>
+                </div>
+
+                <div class="section-title" style="margin-top: 20px;">Direct Messages</div>
+                <div id="dm-list">
+                    </div>
+
+                <button onclick="document.getElementById('add-friend-overlay').style.display='flex'" class="toon-btn" style="width: 100%; margin-top: 20px; font-size: 13px; padding: 12px; background: #1e1f22; border-color: #111; box-shadow: 0px 4px 0px #111;">+ ADD FRIEND</button>
             </div>
         </aside>
 
         <main class="main-chat">
             <header class="mobile-header">
-                <div class="avatar-ring" style="width: 40px; height: 40px; font-size: 18px;">N</div>
+                <div class="avatar-ring" style="width: 40px; height: 40px; font-size: 18px;" id="mob-header-pfp">N</div>
                 <div>
-                    <h2 style="font-size: 18px; font-weight: 900;">Nyelle</h2>
-                    <p style="font-size: 12px; color: var(--text-muted); text-transform: capitalize;" id="mob-status">Connecting...</p>
+                    <h2 style="font-size: 18px; font-weight: 900;" id="mob-header-name">Nyelle</h2>
+                    <p style="font-size: 12px; color: var(--success);">● Active Session</p>
                 </div>
             </header>
 
             <div class="chat-container" id="chat-box">
-                <div class="chat-content" id="chat-content"></div>
+                <div class="chat-content" id="chat-content">
+                    </div>
             </div>
 
             <div class="input-wrapper">
@@ -201,114 +211,86 @@
         let currentUserCode = localStorage.getItem('nyelle_user_code');
         let currentUserName = localStorage.getItem('nyelle_user_name');
         let currentUserPfp = localStorage.getItem('nyelle_user_pfp');
-        let tempSelectedAvatar = '😎';
-        let syncInterval;
-
+        
+        let ws; // The real-time WebSocket connection
+        let activeChat = 'NYELLE_CORE'; // Who we are currently talking to
+        let chatHistories = { 'NYELLE_CORE': [] }; // Store message arrays locally for fast switching
+        let friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {}; // Store added friends
+        
         // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs",
             projectId: "zane-c0ce1", 
             appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c"
         };
-
-        // Initialize Firebase Remote Config
         firebase.initializeApp(firebaseConfig);
         const remoteConfig = firebase.remoteConfig();
         remoteConfig.settings.minimumFetchIntervalMillis = 0; 
 
-        // Bootloader: Fetches URL from Firebase before starting anything
+        // --- BOOTLOADER ---
         async function initializeDynamicConnection() {
             try {
                 await remoteConfig.fetchAndActivate();
                 API_URL = remoteConfig.getString('nyelle_server_url');
                 
-                if (!API_URL) throw new Error("URL is empty in Firebase");
-                
-                console.log("Connected to Nyelle Core at:", API_URL);
-
-                // If already logged in previously, bypass the login screen
                 if (currentUserCode && currentUserName && currentUserPfp) {
                     document.getElementById('login-overlay').style.display = 'none';
                     startSystem();
                 }
             } catch (err) {
-                console.error("Firebase Routing Error:", err);
-                const errEl = document.getElementById('login-error');
-                errEl.textContent = "Critical: Failed to fetch backend route from Firebase.";
-                errEl.style.display = 'block';
+                document.getElementById('login-error').textContent = "Failed to route. Check Firebase.";
+                document.getElementById('login-error').style.display = 'block';
             }
         }
-
-        // Fire the bootloader immediately
         initializeDynamicConnection();
 
-        // Login Logic
+        // Login UI
         document.getElementById('login-btn').addEventListener('click', async () => {
             const code = document.getElementById('access-code').value.trim().toUpperCase();
-            if (!code) return;
-            if (!API_URL) return alert("System hasn't retrieved the backend URL yet. Please wait.");
+            if (!code || !API_URL) return;
 
             try {
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({ code })
                 });
                 const data = await res.json();
 
                 if (data.success) {
-                    currentUserCode = data.user_id;
-                    currentUserName = data.user.name;
+                    currentUserCode = data.user_id; currentUserName = data.user.name;
                     localStorage.setItem('nyelle_user_code', currentUserCode);
                     localStorage.setItem('nyelle_user_name', currentUserName);
-
                     document.getElementById('login-overlay').style.display = 'none';
                     document.getElementById('welcome-name').textContent = currentUserName;
                     document.getElementById('profile-overlay').style.display = 'flex';
                 } else {
-                    const errEl = document.getElementById('login-error');
-                    errEl.textContent = "Access Denied. Invalid Code.";
-                    errEl.style.display = 'block';
+                    document.getElementById('login-error').textContent = "Invalid Code.";
+                    document.getElementById('login-error').style.display = 'block';
                 }
-            } catch (err) {
-                alert("Cannot reach the backend server at " + API_URL);
-            }
+            } catch (err) { alert("Backend unreachable."); }
         });
 
-        // ------------------------------------------
-        // CUSTOM IMAGE UPLOAD LOGIC
-        // ------------------------------------------
-        const imageUploadInput = document.getElementById('custom-pfp-upload');
-        const customPreview = document.getElementById('custom-preview');
-
+        // PFP UI
+        let tempSelectedAvatar = '😎';
         function selectAvatar(element, emoji) {
             tempSelectedAvatar = emoji;
             document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-            customPreview.classList.remove('selected');
+            document.getElementById('custom-preview').classList.remove('selected');
             element.classList.add('selected');
         }
-
-        imageUploadInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
+        document.getElementById('custom-pfp-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function(event) {
-                const base64String = event.target.result;
-                tempSelectedAvatar = base64String;
-
-                customPreview.src = base64String;
-                customPreview.style.display = 'block';
-                
+                tempSelectedAvatar = event.target.result;
+                const cp = document.getElementById('custom-preview');
+                cp.src = tempSelectedAvatar; cp.style.display = 'flex';
                 document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-                customPreview.classList.add('selected');
+                cp.classList.add('selected');
             };
             reader.readAsDataURL(file);
         });
-
         document.getElementById('finish-setup-btn').addEventListener('click', () => {
             currentUserPfp = tempSelectedAvatar;
             localStorage.setItem('nyelle_user_pfp', currentUserPfp);
@@ -317,35 +299,166 @@
         });
 
         // ==========================================
-        // CHAT & TELEMETRY LOGIC
+        // WEBSOCKET ENGINE (THE MULTIPLAYER HEART)
+        // ==========================================
+        function connectWebSocket() {
+            const wsProtocol = API_URL.startsWith('https') ? 'wss://' : 'ws://';
+            const wsDomain = API_URL.replace('https://', '').replace('http://', '');
+            const wsUrl = `${wsProtocol}${wsDomain}/ws/${currentUserCode}`;
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => console.log("🟢 Live Socket Connected!");
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                // --- INCOMING CHAT MESSAGE ---
+                if (data.type === 'chat') {
+                    removeTyping();
+                    const isSelf = data.from_user === currentUserCode;
+                    
+                    // If we sent it, it stays in the active chat. If a friend sent it, it goes to their specific history array.
+                    const targetHistory = isSelf ? activeChat : data.from_user; 
+                    if (!chatHistories[targetHistory]) chatHistories[targetHistory] = [];
+                    
+                    // Generate a unique ID to attach the read receipt double ticks later
+                    const msgId = Date.now(); 
+                    
+                    chatHistories[targetHistory].push({ id: msgId, text: data.text, isSelf: isSelf, read: false });
+
+                    if (activeChat === targetHistory) {
+                        addMessageToUI(data.text, isSelf, msgId, targetHistory);
+                        
+                        // If we are actively looking at this chat and they sent it, send a Read Receipt back!
+                        if (!isSelf) {
+                            ws.send(JSON.stringify({ type: "read", target_user: data.from_user }));
+                        }
+                    } else {
+                        // Background message received! Show a notification dot (CSS class update)
+                        const friendEl = document.getElementById(`friend-${targetHistory}`);
+                        if(friendEl) friendEl.style.boxShadow = "inset 4px 0px 0px var(--success)";
+                    }
+                } 
+                
+                // --- INCOMING TYPING INDICATOR ---
+                else if (data.type === 'typing') {
+                    if (activeChat === data.from_user) {
+                        showTyping(data.from_user);
+                        clearTimeout(window.typingTimer);
+                        window.typingTimer = setTimeout(removeTyping, 3000); // clear after 3s
+                    }
+                }
+
+                // --- INCOMING READ RECEIPT (DOUBLE TICKS) ---
+                else if (data.type === 'read_receipt') {
+                    if (activeChat === data.from_user) {
+                        // Turn the ticks blue!
+                        document.querySelectorAll('.read-receipt').forEach(el => {
+                            el.innerHTML = '✓✓';
+                            el.classList.add('read');
+                        });
+                    }
+                }
+            };
+
+            ws.onclose = () => {
+                console.log("🔴 Socket Dropped. Reconnecting...");
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        // ==========================================
+        // UI & CHAT RENDERING LOGIC
         // ==========================================
         const chatContent = document.getElementById('chat-content');
-        const chatContainer = document.getElementById('chat-box');
         const inputField = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
 
-        function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
+        function scrollToBottom() { document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight; }
 
-        function addMessage(text, isUser) {
+        function renderSidebarPfp(pfpData) {
+            if (pfpData.startsWith('data:image')) return `<img src="${pfpData}">`;
+            return pfpData;
+        }
+
+        function buildFriendList() {
+            const dmList = document.getElementById('dm-list');
+            dmList.innerHTML = '';
+            for (const [code, info] of Object.entries(friendsList)) {
+                dmList.innerHTML += `
+                    <div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')">
+                        <div class="avatar-mini">${renderSidebarPfp(info.pfp)}</div>
+                        <span style="font-weight: bold;">${info.name}</span>
+                        <div class="status-dot online"></div>
+                    </div>
+                `;
+            }
+        }
+
+        // Add Friend Logic
+        document.getElementById('start-dm-btn').addEventListener('click', () => {
+            const code = document.getElementById('friend-code-input').value.trim().toUpperCase();
+            const name = document.getElementById('friend-name-input').value.trim();
+            if (!code || !name) return;
+            
+            // In a real app we'd fetch their real PFP from the backend, using generic robot for now
+            friendsList[code] = { name: name, pfp: '🤖' }; 
+            localStorage.setItem('nyelle_friends', JSON.stringify(friendsList));
+            
+            buildFriendList();
+            document.getElementById('add-friend-overlay').style.display = 'none';
+            switchChat(code);
+        });
+
+        // Switching Active Chats
+        function switchChat(targetCode) {
+            activeChat = targetCode;
+            chatContent.innerHTML = ''; // Clear board
+            
+            // Update sidebar highlights
+            document.querySelectorAll('.friend-item').forEach(el => {
+                el.classList.remove('active');
+                el.style.boxShadow = "none"; // Clear unread badge
+            });
+            document.getElementById(`friend-${targetCode}`).classList.add('active');
+
+            // Update Headers
+            const displayName = targetCode === 'NYELLE_CORE' ? 'Nyelle' : friendsList[targetCode].name;
+            const displayPfp = targetCode === 'NYELLE_CORE' ? 'N' : renderSidebarPfp(friendsList[targetCode].pfp);
+            document.getElementById('mob-header-name').textContent = displayName;
+            document.getElementById('mob-header-pfp').innerHTML = displayPfp;
+            inputField.placeholder = `Message ${displayName}...`;
+
+            // Reload history for this specific chat
+            if (chatHistories[activeChat]) {
+                chatHistories[activeChat].forEach(msg => {
+                    addMessageToUI(msg.text, msg.isSelf, msg.id, targetCode);
+                });
+            }
+            scrollToBottom();
+        }
+
+        function addMessageToUI(text, isSelf, msgId, chatRoomCode) {
             const msgWrapper = document.createElement('div');
-            msgWrapper.className = `msg-wrapper ${isUser ? 'msg-user' : 'msg-nyelle'}`;
+            msgWrapper.className = `msg-wrapper ${isSelf ? 'msg-user' : 'msg-nyelle'}`;
             
             const pfp = document.createElement('div');
             pfp.className = 'bubble-pfp';
             
-            if (isUser) {
-                if (currentUserPfp.startsWith('data:image')) {
-                    pfp.innerHTML = `<img src="${currentUserPfp}" alt="User">`;
-                } else {
-                    pfp.textContent = currentUserPfp;
-                }
+            if (isSelf) {
+                pfp.innerHTML = renderSidebarPfp(currentUserPfp);
             } else {
-                pfp.textContent = 'N';
+                pfp.innerHTML = chatRoomCode === 'NYELLE_CORE' ? 'N' : renderSidebarPfp(friendsList[chatRoomCode]?.pfp || '🤖');
             }
             
             const bubble = document.createElement('div');
-            bubble.className = `toon-bubble ${isUser ? 'user-msg' : 'nyelle-msg'}`;
+            bubble.className = `toon-bubble ${isSelf ? 'user-msg' : 'nyelle-msg'}`;
             bubble.innerHTML = `<p>${text}</p>`;
+
+            // Add the WhatsApp double tick if it's our message!
+            if (isSelf) {
+                bubble.innerHTML += `<span class="read-receipt" id="receipt-${msgId}">✓</span>`;
+            }
             
             msgWrapper.appendChild(pfp);
             msgWrapper.appendChild(bubble);
@@ -353,12 +466,16 @@
             scrollToBottom();
         }
 
-        function showTyping() {
+        function showTyping(senderCode) {
+            removeTyping();
             const typingWrapper = document.createElement('div');
             typingWrapper.className = 'msg-wrapper msg-nyelle';
             typingWrapper.id = 'typing-indicator';
+            
+            const pfpHtml = senderCode === 'NYELLE_CORE' ? 'N' : renderSidebarPfp(friendsList[senderCode]?.pfp || '🤖');
+            
             typingWrapper.innerHTML = `
-                <div class="bubble-pfp">N</div>
+                <div class="bubble-pfp">${pfpHtml}</div>
                 <div class="toon-bubble nyelle-msg">
                     <div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                 </div>
@@ -372,111 +489,61 @@
             if (typing) typing.remove();
         }
 
-        async function sendMessage() {
-            const text = inputField.value.trim();
-            if (!text || !API_URL) return;
-
-            addMessage(text, true);
-            inputField.value = '';
-            showTyping();
-
-            try {
-                const response = await fetch(`${API_URL}/chat`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
-                    body: JSON.stringify({ message: text, user_id: currentUserCode }) 
-                });
-                
-                if (!response.ok) throw new Error("Server error");
-                
-                const data = await response.json();
-                removeTyping();
-                addMessage(data.reply, false);
-
-            } catch (err) {
-                console.error(err);
-                removeTyping();
-                addMessage("Connection dropped... is the backend running?", false);
+        // ==========================================
+        // SENDING MESSAGES & TYPING EVENTS
+        // ==========================================
+        let typingTimeout;
+        inputField.addEventListener('input', () => {
+            if (ws && ws.readyState === WebSocket.OPEN && activeChat !== 'NYELLE_CORE') {
+                ws.send(JSON.stringify({ type: "typing", target_user: activeChat }));
             }
+        });
+
+        function sendMessage() {
+            const text = inputField.value.trim();
+            if (!text || !ws) return;
+
+            // Push through the WebSocket
+            ws.send(JSON.stringify({
+                type: "chat",
+                target_user: activeChat,
+                text: text
+            }));
+            
+            inputField.value = '';
+            
+            // If talking to AI, trigger fake typing immediately since it doesn't send native WS typing events yet
+            if(activeChat === 'NYELLE_CORE') showTyping('NYELLE_CORE');
         }
 
-        sendBtn.addEventListener('click', sendMessage);
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
         inputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-        let lastMessageCount = 0;
+        // ==========================================
+        // SYSTEM BOOT
+        // ==========================================
+        async function startSystem() {
+            // Setup my profile visuals
+            document.getElementById('my-sidebar-name').textContent = currentUserName;
+            document.getElementById('my-sidebar-pfp').innerHTML = renderSidebarPfp(currentUserPfp);
+            
+            buildFriendList();
 
-        async function syncWithServer() {
-            if (!API_URL) return;
+            // Fetch AI history once on boot
             try {
-                const stateRes = await fetch(`${API_URL}/state`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                if (stateRes.ok) {
-                    const data = await stateRes.json();
-                    const nyelle = data.Nyelle;
-                    
-                    document.getElementById('desk-loc').textContent = nyelle.location;
-                    document.getElementById('desk-act').textContent = nyelle.activity;
-                    document.getElementById('desk-mood').textContent = nyelle.mood;
-                    document.getElementById('mob-status').textContent = `${nyelle.location} • ${nyelle.mood}`;
-                }
-
-                const msgRes = await fetch(`${API_URL}/messages`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                if (msgRes.ok) {
-                    const data = await msgRes.json();
-                    const msgs = data.messages || [];
-                    
-                    if (msgs.length > lastMessageCount) {
-                        if (lastMessageCount > 0) { 
-                            const newMsgsCount = msgs.length - lastMessageCount;
-                            for (let i = msgs.length - newMsgsCount; i < msgs.length; i++) {
-                                addMessage(msgs[i].text, false);
-                            }
-                        }
-                        lastMessageCount = msgs.length;
+                const res = await fetch(`${API_URL}/history/${currentUserCode}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.history && data.history.length > 0) {
+                        data.history.forEach(msg => {
+                            chatHistories['NYELLE_CORE'].push({ text: msg.content, isSelf: msg.role === "User" });
+                        });
                     }
                 }
             } catch (err) {}
-        }
 
-        // ==========================================
-        // HISTORY BOOTLOADER (NGRK BYPASS ADDED)
-        // ==========================================
-        async function startSystem() {
-            try {
-                // Fetch chat history from the backend with bypass header
-                const res = await fetch(`${API_URL}/history/${currentUserCode}`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    const history = data.history;
-                    
-                    // If history exists, populate it!
-                    if (history && history.length > 0) {
-                        history.forEach(msg => {
-                            const isUser = msg.role === "User"; 
-                            addMessage(msg.content, isUser);
-                        });
-                    } else {
-                        // New user greeting
-                        addMessage(`System initialized. What's up, ${currentUserName}?`, false);
-                    }
-                }
-            } catch (err) {
-                console.error("Could not load history:", err);
-                addMessage(`System initialized (Offline Mode). What's up, ${currentUserName}?`, false);
-            }
-
-            // Start background telemetry loops
-            syncWithServer();
-            syncInterval = setInterval(syncWithServer, 5000);
+            switchChat('NYELLE_CORE');
+            connectWebSocket(); // Ignite the multiplayer engine!
         }
     </script>
 </body>
