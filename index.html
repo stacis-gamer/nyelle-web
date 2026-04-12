@@ -86,6 +86,9 @@
         .typing-dots { display: flex; gap: 4px; align-items: center; height: 20px; }
         .dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        
+        /* Image rendering style */
+        .chat-image { max-width: 100%; border-radius: 12px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: block; }
     </style>
 </head>
 <body>
@@ -365,7 +368,6 @@
                     removeTyping();
                     if (!chatHistories[targetRoom]) chatHistories[targetRoom] = [];
                     
-                    // Format reply data safely
                     const repData = data.reply_to_id ? { id: data.reply_to_id, text: data.reply_to_text, sender: data.reply_to_sender } : null;
                     
                     chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false, pfp: data.pfp, senderName: data.sender_name, readers: [], replyData: repData });
@@ -456,14 +458,23 @@
                 readersHtml = `<div class="readers-cluster">${tinyPfps}</div>`;
             }
 
-            // INJECT QUOTE BLOCK IF PRESENT
             let quoteHtml = '';
             if (replyData && replyData.id) {
+                // If they replied to an image, format it cleanly so it doesn't break the UI
+                let safeQuoteText = replyData.text.startsWith('data:image/') ? '📷 Photo' : replyData.text;
                 quoteHtml = `
                 <div class="quote-block" onclick="scrollToMsg('${replyData.id}')">
                     <div class="quote-sender">${replyData.sender}</div>
-                    <div class="quote-text">${replyData.text}</div>
+                    <div class="quote-text">${safeQuoteText}</div>
                 </div>`;
+            }
+
+            // --- THE IMAGE RENDERER ---
+            let messageContent = '';
+            if (text.startsWith('data:image/')) {
+                messageContent = `<img class="chat-image" src="${text}">`;
+            } else {
+                messageContent = `<p>${text}</p>`;
             }
 
             wrap.innerHTML = `<div class="bubble-pfp">${pfpHtml}</div>
@@ -471,7 +482,7 @@
                     ${nameLabel}
                     <div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${msgId}">
                         ${quoteHtml}
-                        <p>${text}</p>
+                        ${messageContent}
                         ${receipt}
                     </div>
                     ${readersHtml}
@@ -484,24 +495,28 @@
             const el = document.getElementById(`msg-${id}`);
             if (el) {
                 el.scrollIntoView({behavior: 'smooth', block: 'center'});
-                // Remove animation class if it exists, then force a reflow to restart it
                 el.classList.remove('highlight-flash');
                 void el.offsetWidth; 
                 el.classList.add('highlight-flash');
             }
         }
 
-        // --- REPLY SYSTEM LOGIC ---
         function prepareReply() {
             if (!activeMenuMsgId) return;
             const bubble = document.getElementById(`msg-${activeMenuMsgId}`);
             if (!bubble) return;
             
-            const text = bubble.querySelector('p').innerText;
+            let text = 'Message';
+            // Check if we are replying to an image
+            if (bubble.querySelector('.chat-image')) {
+                text = '📷 Photo';
+            } else if (bubble.querySelector('p')) {
+                text = bubble.querySelector('p').innerText;
+            }
+
             const wrapper = bubble.closest('.msg-wrapper');
             let sender = "User";
 
-            // Determine who sent it
             if (wrapper.classList.contains('msg-user')) {
                 sender = currentUserName;
             } else {
@@ -517,7 +532,6 @@
             document.getElementById('reply-preview').style.display = 'flex';
             document.getElementById('user-input').focus();
             
-            // Close context menu safely
             document.getElementById('msg-context-menu').style.display = 'none';
         }
 
@@ -552,7 +566,7 @@
             activeChat = code; document.querySelectorAll('.friend-item').forEach(i => { i.classList.remove('active'); i.style.boxShadow = "none"; });
             const item = document.getElementById(`friend-${code}`); if(item) item.classList.add('active'); 
             document.getElementById('chat-content').innerHTML = '';
-            cancelReply(); // Clear replies on switch
+            cancelReply(); 
             
             let name, pfp;
             const isGroup = !!groupsList[code];
@@ -595,7 +609,6 @@
                         sName = groupMembersCache[localKey][m.role].name; sPfp = groupMembersCache[localKey][m.role].pfp;
                     } else if (friendsList[m.role]) { sName = friendsList[m.role].name; sPfp = friendsList[m.role].pfp; }
 
-                    // Note: Reply data isn't currently saved permanently to DB, so it won't load on hard refresh. 
                     return { id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode, read: true, delivered: true, readers: [], senderName: sName, pfp: sPfp, replyData: null };
                 });
                 chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey, m.read, m.delivered, m.senderName, m.pfp, m.readers, m.replyData));
@@ -636,7 +649,6 @@
             const tempId = "msg_" + (Date.now() + Math.random().toString(36).substr(2, 5));
             if (!chatHistories[activeChat]) chatHistories[activeChat] = [];
             
-            // Build the packet, including replyData if active
             const repData = replyingTo ? { id: replyingTo.id, text: replyingTo.text, sender: replyingTo.sender } : null;
             chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true, delivered: false, read: false, readers: [], replyData: repData });
             
@@ -651,7 +663,7 @@
             
             ws.send(JSON.stringify(packet));
             inputField.value = ''; 
-            cancelReply(); // Close the reply box
+            cancelReply(); 
         };
         inputField.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
 
