@@ -14,14 +14,15 @@
             --success: #23a559; --danger: #da373c;
         }
         
+        /* THE FIX: Use dvh (Dynamic Viewport Height) to snap UI within mobile browser bars */
         body { 
             background-color: var(--bg-darker); 
-            height: 100vh; 
+            height: 100dvh; 
             width: 100vw;
             display: flex; 
-            overflow: hidden; /* CRITICAL: Prevents horizontal overflow */
+            overflow: hidden; 
             color: var(--text-main); 
-            position: fixed; /* Prevents bounce scroll on mobile */
+            position: fixed; 
         }
 
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 2000; }
@@ -33,7 +34,7 @@
         .menu-item.danger:hover { background: var(--danger); }
         .menu-info { font-size: 10px; color: var(--text-muted); padding: 4px 12px; border-bottom: 1px solid #313338; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .app-layout { display: flex; width: 100%; height: 100%; overflow: hidden; }
+        .app-layout { display: flex; width: 100%; height: 100dvh; overflow: hidden; }
         
         /* --- GPU-ACCELERATED MOBILE SIDEBAR --- */
         .sidebar-backdrop { 
@@ -45,7 +46,7 @@
             display: flex; flex-direction: column; width: 280px; background: var(--bg-dark); 
             border-right: 4px solid var(--bg-darker); position: fixed; top: 0; 
             left: 0; height: 100%; z-index: 999; 
-            transform: translateX(-100%); /* Moves it off screen using GPU */
+            transform: translateX(-100%); 
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             box-shadow: 5px 0 15px rgba(0,0,0,0.5);
             visibility: hidden;
@@ -59,7 +60,6 @@
             .hamburger { display: none; }
             .sidebar-backdrop { display: none !important; }
         }
-        /* -------------------------------------- */
         
         .sidebar-header { padding: 20px; border-bottom: 2px solid var(--bg-darker); display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
         .sidebar-header:hover { background: var(--bg-panel); }
@@ -77,9 +77,11 @@
         .status-dot { width: 10px; height: 10px; background: var(--text-muted); border-radius: 50%; border: 2px solid var(--bg-dark); }
         .status-dot.online { background: var(--success); }
 
-        .main-chat { flex: 1; width: 100%; display: flex; flex-direction: column; background: var(--bg-panel); position: relative; overflow: hidden; }
-        .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; z-index: 10;}
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; align-items: center; width: 100%; }
+        .main-chat { flex: 1; width: 100%; display: flex; flex-direction: column; background: var(--bg-panel); position: relative; overflow: hidden; height: 100%; }
+        .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; z-index: 10; flex-shrink: 0;}
+        
+        /* CHAT CONTAINER: Uses flex-grow to push input down and min-height to prevent overflow */
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; align-items: center; width: 100%; min-height: 0; }
         .chat-content { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 28px; }
         .msg-wrapper { display: flex; gap: 10px; align-items: flex-end; max-width: 85%; position: relative; }
         .msg-nyelle { align-self: flex-start; }
@@ -109,10 +111,11 @@
         @keyframes flashMsg { 0% { filter: brightness(1); } 50% { filter: brightness(1.7); transform: scale(1.02); } 100% { filter: brightness(1); transform: scale(1); } }
         .highlight-flash { animation: flashMsg 0.8s ease; }
 
-        .input-wrapper { padding: 15px 20px 25px 20px; background: linear-gradient(0deg, var(--bg-darker) 0%, transparent 100%); display: flex; flex-direction: column; align-items: center; width: 100%; }
+        /* INPUT BAR: Extra bottom padding for mobile home gesture bars */
+        .input-wrapper { padding: 15px 20px calc(15px + env(safe-area-inset-bottom)); background: var(--bg-darker); display: flex; flex-direction: column; align-items: center; width: 100%; flex-shrink: 0; border-top: 1px solid #111; }
         .input-container { width: 100%; max-width: 800px; display: flex; gap: 12px; }
-        .toon-input { flex: 1; background: var(--bg-darker); border: 3px solid #111; border-radius: 18px; padding: 0 20px; color: white; font-size: 16px; font-weight: bold; outline: none; }
-        .toon-btn { background: var(--accent); color: white; border: 2px solid var(--accent-shadow); border-radius: 16px; padding: 10px 25px; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0px 6px 0px var(--accent-shadow); }
+        .toon-input { flex: 1; background: var(--bg-darker); border: 3px solid #111; border-radius: 18px; padding: 0 20px; color: white; font-size: 16px; font-weight: bold; outline: none; height: 45px; }
+        .toon-btn { background: var(--accent); color: white; border: 2px solid var(--accent-shadow); border-radius: 16px; padding: 0 25px; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0px 6px 0px var(--accent-shadow); height: 45px; }
         .typing-dots { display: flex; gap: 4px; align-items: center; height: 20px; }
         .dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
