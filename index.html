@@ -15,9 +15,10 @@
         }
         body { background-color: var(--bg-darker); height: 100vh; display: flex; overflow: hidden; color: var(--text-main); }
 
-        /* --- OVERLAYS & MENUS --- */
+        /* --- OVERLAYS --- */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 999; }
-        .auth-box { background: var(--bg-dark); padding: 35px 25px; border-radius: 20px; border: 2px solid #111; box-shadow: 0px 10px 30px rgba(0,0,0,0.8); text-align: center; width: 90%; max-width: 400px; }
+        .auth-box { background: var(--bg-dark); padding: 35px 25px; border-radius: 20px; border: 2px solid #111; box-shadow: 0px 10px 30px rgba(0,0,0,0.8); text-align: center; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto;}
+        
         .context-menu { position: fixed; background: #18191b; border: 1px solid #313338; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: none; flex-direction: column; z-index: 1000; min-width: 150px; padding: 6px; }
         .menu-item { padding: 8px 12px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 8px; transition: 0.1s; }
         .menu-item:hover { background: var(--accent); }
@@ -28,6 +29,7 @@
         .app-layout { display: flex; width: 100%; height: 100%; }
         .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; }
         @media (min-width: 800px) { .sidebar { display: flex; } }
+        
         .sidebar-header { padding: 20px; border-bottom: 2px solid var(--bg-darker); display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
         .sidebar-header:hover { background: var(--bg-panel); }
         .avatar-ring { width: 45px; height: 45px; background: var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 3px solid var(--text-main); overflow: hidden; flex-shrink: 0; box-shadow: 0px 4px 0px var(--accent-shadow); font-weight: bold; font-size: 18px; }
@@ -44,10 +46,9 @@
         .status-dot { width: 10px; height: 10px; background: var(--text-muted); border-radius: 50%; border: 2px solid var(--bg-dark); }
         .status-dot.online { background: var(--success); }
 
-        /* --- CHAT --- */
+        /* --- CHAT UI --- */
         .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--bg-panel); background-image: radial-gradient(var(--bg-darker) 1px, transparent 1px); background-size: 20px 20px; position: relative; }
-        .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; gap: 15px; z-index: 10; cursor: pointer;}
-        @media (min-width: 800px) { .mobile-header { display: none; } }
+        .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; gap: 15px; z-index: 10;}
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; align-items: center; }
         .chat-content { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 28px; }
         .msg-wrapper { display: flex; gap: 10px; align-items: flex-end; max-width: 85%; position: relative; }
@@ -64,6 +65,11 @@
         .read-receipt.read { color: #4facfe; }
         .react-badge { position: absolute; bottom: -18px; left: 10px; background: var(--bg-darker); border: 1px solid #111; border-radius: 12px; padding: 2px 6px; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 5; color: white; }
         .sender-name-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; margin-left: 10px; font-weight: bold;}
+
+        /* --- NEW: READ AVATAR CLUSTER --- */
+        .readers-cluster { display: flex; justify-content: flex-end; margin-top: 5px; padding-right: 5px; height: 16px; }
+        .tiny-reader { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--bg-panel); margin-left: -8px; background: var(--bg-darker); display: flex; justify-content: center; align-items: center; overflow: hidden; font-size: 10px; box-shadow: 0px 2px 4px rgba(0,0,0,0.4);}
+        .tiny-reader img { width: 100%; height: 100%; object-fit: cover; }
 
         /* --- INPUT --- */
         .input-wrapper { padding: 15px 20px 25px 20px; background: linear-gradient(0deg, var(--bg-darker) 0%, transparent 100%); display: flex; justify-content: center; }
@@ -112,24 +118,13 @@
         </div>
     </div>
 
-    <div id="admin-panel-overlay" class="overlay" style="display: none;">
-        <div class="auth-box" style="max-width: 450px;">
-            <h2>🛡️ Admin Control Panel</h2>
-            <div style="background: var(--bg-panel); padding: 15px; border-radius: 10px; margin: 15px 0; text-align: left;">
-                <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--accent-highlight);">Create Group Chat</h3>
-                <input type="text" id="new-gc-name" class="toon-input" placeholder="Group Name" style="width: 100%; margin-bottom: 10px; padding: 10px; font-size:14px;">
-                <button onclick="createGroupChat()" class="toon-btn" style="width: 100%; padding: 10px; font-size: 13px;">CREATE GC</button>
-            </div>
-            <div style="background: var(--bg-panel); padding: 15px; border-radius: 10px; text-align: left;">
-                <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--danger);">Manage Group Members</h3>
-                <input type="text" id="manage-gc-code" class="toon-input" placeholder="10-CHAR GC CODE" style="width: 100%; margin-bottom: 10px; padding: 10px; font-size:14px;">
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="manage-user-code" class="toon-input" placeholder="User Code" style="flex: 1; padding: 10px; font-size:14px;">
-                    <button onclick="manageGroupUser('add')" class="toon-btn" style="padding: 10px; font-size: 12px; background: var(--success); box-shadow: 0 4px 0 #18713c;">ADD</button>
-                    <button onclick="manageGroupUser('kick')" class="toon-btn" style="padding: 10px; font-size: 12px; background: var(--danger); box-shadow: 0 4px 0 #a1282c;">KICK</button>
+    <div id="group-info-overlay" class="overlay" style="display: none;">
+        <div class="auth-box" style="max-width: 350px;">
+            <h2 id="gc-info-title">Group Name</h2>
+            <p style="margin-bottom: 15px;">Active Roster</p>
+            <div id="gc-members-list" style="display:flex; flex-direction:column; gap:10px; text-align:left; background:var(--bg-panel); padding:15px; border-radius:10px; margin-bottom:15px;">
                 </div>
-            </div>
-            <button onclick="document.getElementById('admin-panel-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: #313338; border-color: #111; box-shadow: 0 4px 0 #111; margin-top: 15px;">CLOSE</button>
+            <button onclick="document.getElementById('group-info-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: #313338; box-shadow: 0 4px 0 #111;">CLOSE</button>
         </div>
     </div>
 
@@ -176,9 +171,12 @@
         </aside>
 
         <main class="main-chat">
-            <header class="mobile-header" onclick="openMyProfileMenu(event)">
-                <div class="avatar-ring" style="width: 35px; height: 35px;" id="mob-pfp">N</div>
-                <h2 style="font-size: 16px; margin-left:10px;" id="mob-name">Nyelle</h2>
+            <header class="mobile-header">
+                <div class="avatar-ring" style="width: 35px; height: 35px;" id="mob-pfp" onclick="openMyProfileMenu(event)">N</div>
+                <h2 style="font-size: 16px; margin-left:10px; display:flex; align-items:center; gap:10px; flex:1;">
+                    <span id="mob-name">Nyelle</span>
+                    <span id="gc-info-btn" style="display:none; font-size:11px; cursor:pointer; background:var(--accent); color:white; padding:4px 8px; border-radius:10px; font-weight:bold; box-shadow:0 2px 0 var(--accent-shadow);" onclick="showGroupInfo()">👥 INFO</span>
+                </h2>
             </header>
             <div class="chat-container" id="chat-box"><div class="chat-content" id="chat-content"></div></div>
             <div class="input-wrapper">
@@ -240,27 +238,10 @@
             reader.readAsDataURL(e.target.files[0]);
         };
 
-        // --- MENUS & ADMIN ---
         function openMyProfileMenu(e) { e.stopPropagation(); const menu = document.getElementById('my-profile-menu'); menu.style.display = 'flex'; menu.style.top = `${e.clientY + 20}px`; menu.style.left = `${isMobile() ? 20 : e.clientX}px`; }
         function openProfileSetup() { document.getElementById('profile-overlay').style.display = 'flex'; document.getElementById('cancel-setup-btn').style.display = 'block'; }
         document.getElementById('cancel-setup-btn').onclick = () => { document.getElementById('profile-overlay').style.display = 'none'; }
-        
-        function openAdminPanel() { document.getElementById('admin-panel-overlay').style.display = 'flex'; document.getElementById('my-profile-menu').style.display = 'none';}
-        
-        async function createGroupChat() {
-            const name = document.getElementById('new-gc-name').value.trim(); if(!name) return;
-            const res = await fetch(`${API_URL}/admin/groups/create`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name: name, admin_code: currentUserCode}) });
-            const data = await res.json();
-            if(data.success) { alert(`Group Created!\nCode: ${data.group_code}`); document.getElementById('new-gc-name').value = ''; }
-        }
-
-        async function manageGroupUser(action) {
-            const gcCode = document.getElementById('manage-gc-code').value.trim().toUpperCase(), userCode = document.getElementById('manage-user-code').value.trim().toUpperCase();
-            if(!gcCode || !userCode) return;
-            const res = await fetch(`${API_URL}/admin/groups/${gcCode}/${action}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({target_code: userCode, admin_code: currentUserCode}) });
-            const data = await res.json();
-            if(data.success) alert(`User successfully ${action}ed!`); else alert("Failed. Check codes and admin rights.");
-        }
+        function openAdminPanel() { window.open('admin.html', '_blank'); document.getElementById('my-profile-menu').style.display = 'none';}
 
         document.getElementById('finish-setup-btn').onclick = async () => {
             localStorage.setItem('nyelle_user_pfp', currentUserPfp); document.getElementById('profile-overlay').style.display = 'none';
@@ -277,6 +258,24 @@
                     chatHistories['NYELLE_CORE'] = []; switchChat('NYELLE_CORE'); alert("Memory wiped.");
                 } catch(e) { alert("Failed to connect to server."); }
             }
+        }
+
+        // --- NEW: FETCH GROUP INFO ---
+        async function showGroupInfo() {
+            if(!groupsList[activeChat]) return;
+            try {
+                const res = await fetch(`${API_URL}/api/groups/${activeChat}/info`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                const data = await res.json();
+                if(data.success) {
+                    document.getElementById('gc-info-title').textContent = data.name;
+                    const list = document.getElementById('gc-members-list');
+                    list.innerHTML = '';
+                    data.members.forEach(m => {
+                        list.innerHTML += `<div style="display:flex; align-items:center; gap:10px; font-weight:bold; font-size:14px;"><div class="avatar-mini" style="width:30px; height:30px;">${renderPfp(m.pfp)}</div> ${m.name}</div>`;
+                    });
+                    document.getElementById('group-info-overlay').style.display = 'flex';
+                }
+            } catch(e) { alert("Failed to fetch group info."); }
         }
 
         async function syncFriendProfiles() {
@@ -301,7 +300,6 @@
                     
                     if (!isSelf && from !== 'NYELLE_CORE' && !data.target_room && friendsList[from] && data.pfp && friendsList[from].pfp !== data.pfp) {
                         friendsList[from].pfp = data.pfp; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshLists();
-                        if (activeChat === from) document.getElementById('mob-pfp').innerHTML = renderPfp(data.pfp);
                     }
 
                     if (isSelf) {
@@ -313,25 +311,39 @@
                     }
                     removeTyping();
                     if (!chatHistories[targetRoom]) chatHistories[targetRoom] = [];
-                    chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false, pfp: data.pfp, senderName: data.sender_name });
+                    
+                    // New array to store who has read this specific message
+                    chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false, pfp: data.pfp, senderName: data.sender_name, readers: [] });
                     
                     if (activeChat === targetRoom) {
-                        addMessageToUI(data.text, false, data.msg_id, targetRoom, false, false, data.sender_name, data.pfp);
-                        if (from !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "read", target_user: from }));
+                        addMessageToUI(data.text, false, data.msg_id, targetRoom, false, false, data.sender_name, data.pfp, []);
+                        if (from !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "read", target_room: targetRoom, msg_id: data.msg_id, pfp: currentUserPfp }));
                     } else {
                         const f = document.getElementById(`friend-${targetRoom}`); if(f) f.style.boxShadow = "inset 4px 0px 0px var(--accent-highlight)";
                     }
-                } else if (data.type === 'typing' && activeChat === data.from_user) {
+                } else if (data.type === 'typing' && activeChat === (data.target_room || data.from_user)) {
                     showTyping(data.from_user); clearTimeout(window.tTimer); window.tTimer = setTimeout(removeTyping, 3000);
                 } else if (data.type === 'read_receipt') {
-                    if (chatHistories[data.from_user]) chatHistories[data.from_user].forEach(m => { if(m.isSelf) m.read = true; });
-                    if (activeChat === data.from_user) document.querySelectorAll('.read-receipt').forEach(el => { el.innerHTML = '✓✓'; el.classList.add('read'); });
+                    const room = data.target_room || data.from_user;
+                    if (chatHistories[room] && chatHistories[room].length > 0) {
+                        chatHistories[room].forEach(m => { if(m.isSelf) m.read = true; });
+                        
+                        // NEW: Add Reader PFP to the specific message if provided
+                        if(data.msg_id && data.pfp) {
+                            const targetMsg = chatHistories[room].find(m => m.id === data.msg_id) || chatHistories[room][chatHistories[room].length - 1];
+                            if(targetMsg) {
+                                if(!targetMsg.readers) targetMsg.readers = [];
+                                if(!targetMsg.readers.includes(data.pfp)) targetMsg.readers.push(data.pfp);
+                            }
+                        }
+                    }
+                    if (activeChat === room) switchChat(room); // Re-renders to show the updated tiny avatars
                 } else if (data.type === 'reaction') applyReactionToUI(data.msg_id, data.emoji);
             };
             ws.onclose = () => setTimeout(connectWebSocket, 3000);
         }
 
-        function addMessageToUI(text, isSelf, msgId, chatRoom, isRead = false, isDelivered = false, senderName = null, overridePfp = null) {
+        function addMessageToUI(text, isSelf, msgId, chatRoom, isRead = false, isDelivered = false, senderName = null, overridePfp = null, readers = []) {
             const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${isSelf ? 'msg-user' : 'msg-nyelle'}`;
             const isGroup = !!groupsList[chatRoom];
             const pfpHtml = isSelf ? renderPfp(currentUserPfp) : (overridePfp ? renderPfp(overridePfp) : (chatRoom === 'NYELLE_CORE' ? 'N' : renderPfp(friendsList[chatRoom]?.pfp || '🌐')));
@@ -347,10 +359,18 @@
             let nameLabel = '';
             if (!isSelf && isGroup && senderName) nameLabel = `<div class="sender-name-label">${senderName}</div>`;
 
+            // TINY AVATAR CLUSTER RENDERER
+            let readersHtml = '';
+            if (isSelf && readers && readers.length > 0) {
+                const tinyPfps = readers.map(p => `<div class="tiny-reader">${renderPfp(p)}</div>`).join('');
+                readersHtml = `<div class="readers-cluster">${tinyPfps}</div>`;
+            }
+
             wrap.innerHTML = `<div class="bubble-pfp">${pfpHtml}</div>
                 <div style="display:flex; flex-direction:column; max-width:100%;">
                     ${nameLabel}
                     <div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${msgId}"><p>${text}</p>${receipt}</div>
+                    ${readersHtml}
                 </div>
                 <div class="dots-trigger" onclick="openMsgMenu(event, '${msgId}')">⋮</div>`;
             document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
@@ -384,29 +404,33 @@
             document.getElementById('chat-content').innerHTML = '';
             
             let name, pfp;
-            if(code === 'NYELLE_CORE') { name = 'Nyelle'; pfp = 'N'; }
-            else if(groupsList[code]) { name = groupsList[code].name; pfp = '🌐'; }
-            else { name = friendsList[code].name; pfp = renderPfp(friendsList[code].pfp); }
+            const isGroup = !!groupsList[code];
+            if(code === 'NYELLE_CORE') { name = 'Nyelle'; pfp = 'N'; document.getElementById('gc-info-btn').style.display = 'none'; }
+            else if(isGroup) { name = groupsList[code].name; pfp = '🌐'; document.getElementById('gc-info-btn').style.display = 'block'; }
+            else { name = friendsList[code].name; pfp = renderPfp(friendsList[code].pfp); document.getElementById('gc-info-btn').style.display = 'none'; }
 
             document.getElementById('mob-name').textContent = name;
             document.getElementById('mob-pfp').innerHTML = pfp;
             
             if (!chatHistories[code] || chatHistories[code].length === 0) {
-                const isGroup = !!groupsList[code];
                 loadChatHistory(code, code === 'NYELLE_CORE' ? currentUserCode : (isGroup ? code : `DM_${[currentUserCode, code].sort().join('_')}`));
             } else {
-                chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code, m.read, m.delivered, m.senderName, m.pfp));
+                chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code, m.read, m.delivered, m.senderName, m.pfp, m.readers));
             }
 
-            if (code !== 'NYELLE_CORE' && ws && ws.readyState === 1 && !groupsList[code]) ws.send(JSON.stringify({ type: "read", target_user: code }));
+            if (code !== 'NYELLE_CORE' && ws && ws.readyState === 1) {
+                // If opening a chat, send a read receipt for the latest message so sender gets our tiny PFP
+                const lastMsg = chatHistories[code] && chatHistories[code].length > 0 ? chatHistories[code][chatHistories[code].length - 1] : null;
+                ws.send(JSON.stringify({ type: "read", target_room: code, msg_id: lastMsg ? lastMsg.id : null, pfp: currentUserPfp }));
+            }
         }
 
         async function loadChatHistory(localKey, remoteId) {
             try {
                 const res = await fetch(`${API_URL}/history/${remoteId}`, { headers: {'ngrok-skip-browser-warning': 'true'} });
                 const data = await res.json();
-                chatHistories[localKey] = (data.history || []).map(m => ({ id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode, read: true, delivered: true }));
-                chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey, m.read, m.delivered));
+                chatHistories[localKey] = (data.history || []).map(m => ({ id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode, read: true, delivered: true, readers: [] }));
+                chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey, m.read, m.delivered, null, null, m.readers));
             } catch(e) {}
         }
 
@@ -421,7 +445,6 @@
             });
         }
 
-        // Resolves Code Type when Adding
         document.getElementById('start-dm-btn').onclick = async () => {
             const code = document.getElementById('friend-code-input').value.trim().toUpperCase(), name = document.getElementById('friend-name-input').value.trim();
             if (code) { 
@@ -440,10 +463,13 @@
             const text = inputField.value.trim(); if (!text || !ws || ws.readyState !== 1) return;
             const tempId = "msg_" + (Date.now() + Math.random().toString(36).substr(2, 5));
             if (!chatHistories[activeChat]) chatHistories[activeChat] = [];
-            chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true, delivered: false, read: false });
-            addMessageToUI(text, true, tempId, activeChat, false, false);
+            chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true, delivered: false, read: false, readers: [] });
+            addMessageToUI(text, true, tempId, activeChat, false, false, null, null, []);
             ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, text: text, msg_id: tempId, pfp: currentUserPfp, sender_name: currentUserName }));
-            inputField.value = ''; if (activeChat === 'NYELLE_CORE') showTyping('NYELLE_CORE');
+            inputField.value = ''; 
+            
+            // Show typing indicator visually before server locks in queue
+            if (activeChat === 'NYELLE_CORE' || (groupsList[activeChat])) showTyping('NYELLE_CORE');
         };
         inputField.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
 
