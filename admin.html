@@ -14,8 +14,8 @@
         .card { background: #1e1f22; padding: 20px; border-radius: 8px; border: 1px solid #313338; }
         h3 { margin-bottom: 15px; color: #b5bac1; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
 
-        input, button { padding: 12px; margin: 5px 0; border-radius: 6px; border: none; outline: none; display: block; width: 100%; }
-        input { background: #2b2d31; color: white; border: 2px solid transparent; transition: 0.2s; }
+        input, button { padding: 12px; margin: 5px 0; border-radius: 6px; border: none; outline: none; display: block; width: 100%; box-sizing: border-box; }
+        input { background: #2b2d31; color: white; border: 2px solid transparent; transition: 0.2s; font-family: monospace; font-size: 14px; }
         input:focus { border-color: #5865F2; }
         
         button { background: #5865F2; color: white; cursor: pointer; font-weight: bold; transition: 0.1s; margin-top: 10px; }
@@ -23,12 +23,15 @@
         button:active { transform: translateY(2px); }
         button.delete { background: #da373c; padding: 8px 12px; width: auto; display: inline-block; margin: 0; }
         button.delete:hover { background: #a1282c; }
+        button.success { background: #23a559; }
+        button.success:hover { background: #18713c; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #1e1f22; border-radius: 8px; overflow: hidden; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #2b2d31; }
         th { background: #111214; color: #b5bac1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
         
         .code-box { font-family: monospace; background: #111; padding: 6px 12px; border-radius: 4px; letter-spacing: 2px; color: #58f28a; font-size: 14px; font-weight: bold; }
+        .flex-row { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
@@ -38,21 +41,42 @@
         
         <div class="panel-grid">
             <div class="card">
-                <h3>Global Routing (Remote Config)</h3>
-                <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Update the ngrok URL stored in Firebase.</p>
-                <input type="text" id="new-url" placeholder="https://....ngrok-free.dev">
-                <button onclick="updateRemoteUrl()">Update Server Route</button>
+                <h3>Admin Credentials</h3>
+                <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Enter your personal Access Code to authorize Group Chat modifications.</p>
+                <input type="text" id="admin-code-input" placeholder="Your 10-Char Code">
+                <button onclick="saveAdminCode()">Authorize Session</button>
             </div>
 
             <div class="card">
-                <h3>Generate Access Code</h3>
+                <h3>Create Network User</h3>
+                <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Generate a new identity and access code.</p>
                 <input type="text" id="new-name" placeholder="Friend's Name">
                 <input type="number" id="new-age" placeholder="Age">
                 <button onclick="createUser()">+ Create User</button>
             </div>
         </div>
 
-        <div class="card" style="width: 100%;">
+        <h2 style="color: #b5bac1; font-size: 16px; margin: 30px 0 10px 0; border-bottom: 1px solid #313338; padding-bottom: 10px;">🌐 Group Chat Management</h2>
+        
+        <div class="panel-grid">
+            <div class="card">
+                <h3>Deploy New Group</h3>
+                <input type="text" id="gc-name" placeholder="Group Name (e.g. The Squad)">
+                <button onclick="createGroup()">Deploy Group Chat</button>
+            </div>
+
+            <div class="card">
+                <h3>Manage Group Roster</h3>
+                <input type="text" id="gc-code" placeholder="Target Group Code">
+                <input type="text" id="gc-target-code" placeholder="Target User Code">
+                <div class="flex-row">
+                    <button class="success" onclick="manageGroup('add')">Add User</button>
+                    <button class="delete" style="width: 100%; margin-top: 10px;" onclick="manageGroup('kick')">Kick User</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="width: 100%; margin-top: 25px;">
             <h3>Active Network Users</h3>
             <table>
                 <thead>
@@ -75,6 +99,7 @@
 
     <script>
         let API_URL = '';
+        let adminCode = localStorage.getItem('nyelle_admin_code') || '';
 
         // --- YOUR CONFIGS ---
         const firebaseConfig = {
@@ -88,6 +113,8 @@
         remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
         async function init() {
+            if(adminCode) document.getElementById('admin-code-input').value = adminCode;
+
             try {
                 await remoteConfig.fetchAndActivate();
                 API_URL = remoteConfig.getString('nyelle_server_url');
@@ -97,7 +124,6 @@
                 const statusEl = document.getElementById('connection-status');
                 statusEl.innerHTML = `🟢 Live Backend: <b>${API_URL}</b>`;
                 statusEl.classList.add('live');
-                document.getElementById('new-url').value = API_URL;
 
                 loadUsers();
             } catch (err) {
@@ -105,9 +131,16 @@
             }
         }
 
+        // --- ADMIN AUTH ---
+        function saveAdminCode() {
+            adminCode = document.getElementById('admin-code-input').value.trim().toUpperCase();
+            localStorage.setItem('nyelle_admin_code', adminCode);
+            alert("Admin Code saved. You are authorized to manage groups.");
+        }
+
+        // --- USER MANAGEMENT ---
         async function loadUsers() {
             try {
-                // ADDED THE BYPASS HEADER HERE
                 const res = await fetch(`${API_URL}/admin/users`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
@@ -139,13 +172,12 @@
             try {
                 await fetch(`${API_URL}/admin/users/add`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({ name, age: parseInt(age) })
                 });
-                location.reload();
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-age').value = '';
+                loadUsers();
             } catch (e) { alert("Failed to add user."); }
         }
 
@@ -160,9 +192,49 @@
             } catch (e) { alert("Failed to delete."); }
         }
 
-        function updateRemoteUrl() {
-            alert("To update the route, change the 'nyelle_server_url' parameter in your Firebase Remote Config console and click 'Publish Changes'.");
-            window.open("https://console.firebase.google.com/project/zane-c0ce1/config", "_blank");
+        // --- GROUP MANAGEMENT ---
+        async function createGroup() {
+            if(!adminCode) return alert("Please set your Admin Credentials first!");
+            const name = document.getElementById('gc-name').value.trim();
+            if(!name) return alert("Enter a group name");
+
+            try {
+                const res = await fetch(`${API_URL}/admin/groups/create`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'},
+                    body: JSON.stringify({ name: name, admin_code: adminCode })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    alert(`✅ Group Created successfully!\n\nShare this Group Code with your friends:\n${data.group_code}`);
+                    document.getElementById('gc-name').value = '';
+                } else {
+                    alert("Failed to create group.");
+                }
+            } catch (e) { alert("Server Error."); }
+        }
+
+        async function manageGroup(action) {
+            if(!adminCode) return alert("Please set your Admin Credentials first!");
+            const gcCode = document.getElementById('gc-code').value.trim().toUpperCase();
+            const userCode = document.getElementById('gc-target-code').value.trim().toUpperCase();
+
+            if(!gcCode || !userCode) return alert("Enter both the GC Code and the Target User Code.");
+
+            try {
+                const res = await fetch(`${API_URL}/admin/groups/${gcCode}/${action}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'},
+                    body: JSON.stringify({ target_code: userCode, admin_code: adminCode })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    alert(`✅ User successfully ${action === 'add' ? 'added to' : 'kicked from'} the group!`);
+                    document.getElementById('gc-target-code').value = '';
+                } else {
+                    alert(`❌ Failed. Ensure you are the creator of this group and the codes are correct.`);
+                }
+            } catch (e) { alert("Server Error."); }
         }
 
         init();
