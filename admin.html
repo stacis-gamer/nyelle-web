@@ -32,12 +32,22 @@
         
         .code-box { font-family: monospace; background: #111; padding: 6px 12px; border-radius: 4px; letter-spacing: 2px; color: #58f28a; font-size: 14px; font-weight: bold; }
         .flex-row { display: flex; gap: 10px; }
+        .system-override { background: #111; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #5865F2; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Nyelle Core - Master Control</h1>
         <div id="connection-status" class="status">🟡 Syncing with Firebase...</div>
+
+        <div class="system-override">
+            <h3 style="color: #5865F2; margin-bottom: 5px;">Server Route Override</h3>
+            <p style="font-size: 12px; color: #888; margin-bottom: 10px;">If Firebase caching fails or you see a red error below, paste your live HTTPS Ngrok URL here to force a direct connection.</p>
+            <div class="flex-row">
+                <input type="text" id="manual-url-input" placeholder="https://xxxx-xx-xx...ngrok-free.app">
+                <button style="width: 150px; margin-top: 5px;" onclick="forceConnection()">Force Connect</button>
+            </div>
+        </div>
         
         <div class="panel-grid">
             <div class="card">
@@ -130,15 +140,25 @@
         remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
         function getBaseUrl() {
-            return API_URL.replace(/\/+$/, '');
+            return API_URL.replace(/\/+$/, ''); // Removes trailing slashes safely
         }
 
         async function init() {
             if(adminCode) document.getElementById('admin-code-input').value = adminCode;
 
+            // Check if user set a manual override previously
+            const savedOverride = localStorage.getItem('nyelle_manual_override');
+            
             try {
                 await remoteConfig.fetchAndActivate();
-                API_URL = remoteConfig.getString('nyelle_server_url');
+                
+                if (savedOverride) {
+                    API_URL = savedOverride;
+                    document.getElementById('manual-url-input').value = API_URL;
+                } else {
+                    API_URL = remoteConfig.getString('nyelle_server_url');
+                    document.getElementById('manual-url-input').value = API_URL;
+                }
                 
                 if (!API_URL) throw new Error("No URL found");
 
@@ -147,10 +167,33 @@
                 statusEl.classList.add('live');
 
                 loadUsers();
-                loadGroups(); // Load the GC table!
+                loadGroups();
             } catch (err) {
-                document.getElementById('connection-status').innerHTML = "🔴 Firebase Route Offline";
+                document.getElementById('connection-status').innerHTML = "🔴 Firebase Route Offline (Use Manual Override)";
             }
+        }
+
+        // --- NEW: FORCE MANUAL CONNECTION ---
+        function forceConnection() {
+            let manualInput = document.getElementById('manual-url-input').value.trim();
+            if(!manualInput) return alert("Please enter a valid Ngrok URL");
+            
+            // Ensure they paste an HTTPS link (HTTP will break on GitHub pages)
+            if(manualInput.startsWith("http://")) {
+                manualInput = manualInput.replace("http://", "https://");
+                document.getElementById('manual-url-input').value = manualInput;
+            }
+
+            API_URL = manualInput;
+            localStorage.setItem('nyelle_manual_override', API_URL); // Save it so it survives refresh
+            
+            const statusEl = document.getElementById('connection-status');
+            statusEl.innerHTML = `🟢 Manual Connection: <b>${getBaseUrl()}</b>`;
+            statusEl.classList.add('live');
+            
+            // Re-fetch everything with the new link
+            loadUsers();
+            loadGroups();
         }
 
         // --- ADMIN AUTH ---
@@ -162,13 +205,13 @@
 
         // --- USER MANAGEMENT ---
         async function loadUsers() {
+            const tbody = document.getElementById('user-list');
             try {
                 const res = await fetch(`${getBaseUrl()}/admin/users`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
                 const users = await res.json();
-                const tbody = document.getElementById('user-list');
                 tbody.innerHTML = '';
                 
-                if (users.detail) { tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Server Error: ${users.detail}. Please restart your main.py server.</td></tr>`; return; }
+                if (users.detail) { tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Server Error: ${users.detail}</td></tr>`; return; }
                 if (Object.keys(users).length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">No users exist yet. Create one above!</td></tr>`; return; }
                 
                 for (const [code, data] of Object.entries(users)) {
@@ -182,7 +225,9 @@
                         </tr>
                     `;
                 }
-            } catch (e) {}
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Fetch failed. Ensure URL is correct and server is running.</td></tr>`;
+            }
         }
 
         async function createUser() {
@@ -212,10 +257,10 @@
 
         // --- GROUP MANAGEMENT ---
         async function loadGroups() {
+            const tbody = document.getElementById('group-list');
             try {
                 const res = await fetch(`${getBaseUrl()}/admin/groups`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
                 const groups = await res.json();
-                const tbody = document.getElementById('group-list');
                 tbody.innerHTML = '';
                 
                 if (groups.detail) { tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #da373c;">Server Error: ${groups.detail}</td></tr>`; return; }
@@ -233,7 +278,9 @@
                         </tr>
                     `;
                 }
-            } catch (e) { document.getElementById('group-list').innerHTML = `<tr><td colspan="5" style="text-align: center; color: #da373c;">Failed to load groups.</td></tr>`; }
+            } catch (e) { 
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #da373c;">Fetch failed. Ensure URL is correct and server is running.</td></tr>`; 
+            }
         }
 
         async function createGroup() {
