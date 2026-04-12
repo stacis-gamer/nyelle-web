@@ -75,8 +75,11 @@
         .user-msg { background: var(--accent); border: 2px solid var(--accent-shadow); border-bottom-right-radius: 4px; }
         .dots-trigger { opacity: 0; cursor: pointer; color: var(--text-muted); padding: 0 8px; font-size: 18px; transition: 0.2s; align-self: center; }
         .msg-wrapper:hover .dots-trigger { opacity: 1; }
+        
+        /* Updated Read Receipt Colors */
         .read-receipt { font-size: 11px; color: rgba(255,255,255,0.4); position: absolute; bottom: -18px; right: 4px; font-weight: bold; }
         .read-receipt.read { color: #4facfe; }
+        
         .react-badge { position: absolute; bottom: -18px; left: 10px; background: var(--bg-darker); border: 1px solid #111; border-radius: 12px; padding: 2px 6px; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 5; color: white; }
 
         /* --- INPUT --- */
@@ -213,10 +216,7 @@
                     try {
                         const pfpRes = await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
                         const pfpData = await pfpRes.json();
-                        if (pfpData.pfp !== "👤") {
-                            currentUserPfp = pfpData.pfp;
-                            localStorage.setItem('nyelle_user_pfp', currentUserPfp);
-                        }
+                        if (pfpData.pfp !== "👤") { currentUserPfp = pfpData.pfp; localStorage.setItem('nyelle_user_pfp', currentUserPfp); }
                     } catch(e) {}
 
                     document.getElementById('login-overlay').style.display = 'none'; document.getElementById('welcome-name').textContent = currentUserName;
@@ -233,7 +233,6 @@
             reader.readAsDataURL(e.target.files[0]);
         };
 
-        // Profile Menu Logic
         function openMyProfileMenu(e) { e.stopPropagation(); const menu = document.getElementById('my-profile-menu'); menu.style.display = 'flex'; menu.style.top = `${e.clientY + 20}px`; menu.style.left = `${isMobile() ? 20 : e.clientX}px`; }
         function openProfileSetup() { document.getElementById('profile-overlay').style.display = 'flex'; document.getElementById('cancel-setup-btn').style.display = 'block'; }
         document.getElementById('cancel-setup-btn').onclick = () => { document.getElementById('profile-overlay').style.display = 'none'; }
@@ -242,13 +241,11 @@
             localStorage.setItem('nyelle_user_pfp', currentUserPfp);
             document.getElementById('profile-overlay').style.display = 'none';
             if (document.getElementById('my-sidebar-pfp')) document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
-            
             try { await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ pfp: currentUserPfp }) }); } catch(e) {}
             if(!ws || ws.readyState !== 1) startSystem();
         };
 
         function logOut() { localStorage.clear(); location.reload(); }
-
         async function wipeMemory() {
             if(confirm("Wipe Nyelle's memory of you? This cannot be undone.")) {
                 try {
@@ -258,24 +255,19 @@
             }
         }
 
-        // --- BACKGROUND PFP SYNC ---
         async function syncFriendProfiles() {
             let updated = false;
             for (let code in friendsList) {
                 try {
                     const res = await fetch(`${API_URL}/api/user/${code}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
                     const data = await res.json();
-                    if(data.pfp && data.pfp !== '👤' && friendsList[code].pfp !== data.pfp) {
-                        friendsList[code].pfp = data.pfp; updated = true;
-                    }
+                    if(data.pfp && data.pfp !== '👤' && friendsList[code].pfp !== data.pfp) { friendsList[code].pfp = data.pfp; updated = true; }
                 } catch(e) {}
             }
             if(updated) {
                 localStorage.setItem('nyelle_friends', JSON.stringify(friendsList));
                 refreshFriendList();
-                if(activeChat !== 'NYELLE_CORE' && friendsList[activeChat]) {
-                    document.getElementById('mob-pfp').innerHTML = renderPfp(friendsList[activeChat].pfp);
-                }
+                if(activeChat !== 'NYELLE_CORE' && friendsList[activeChat]) document.getElementById('mob-pfp').innerHTML = renderPfp(friendsList[activeChat].pfp);
             }
         }
 
@@ -287,44 +279,62 @@
                 if (data.type === 'chat') {
                     const from = data.from_user, isSelf = (from === currentUserCode), targetRoom = isSelf ? activeChat : from;
                     
-                    // REAL-TIME PFP SYNC
-                    if (!isSelf && from !== 'NYELLE_CORE' && friendsList[from] && data.pfp) {
-                        if (friendsList[from].pfp !== data.pfp) {
-                            friendsList[from].pfp = data.pfp;
-                            localStorage.setItem('nyelle_friends', JSON.stringify(friendsList));
-                            refreshFriendList();
-                            if (activeChat === from) document.getElementById('mob-pfp').innerHTML = renderPfp(data.pfp);
-                        }
+                    if (!isSelf && from !== 'NYELLE_CORE' && friendsList[from] && data.pfp && friendsList[from].pfp !== data.pfp) {
+                        friendsList[from].pfp = data.pfp; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshFriendList();
+                        if (activeChat === from) document.getElementById('mob-pfp').innerHTML = renderPfp(data.pfp);
                     }
 
                     if (isSelf) {
                         const tick = document.getElementById(`r-${data.msg_id}`);
                         if (tick) tick.innerHTML = data.delivered ? '✓✓' : '✓';
+                        
+                        // UPDATE CACHE SO TICKS PERSIST WHEN TAB SWITCHING
+                        const msgObj = chatHistories[targetRoom]?.find(m => m.id === data.msg_id);
+                        if (msgObj) msgObj.delivered = data.delivered;
                         return; 
                     }
+                    
                     removeTyping();
                     if (!chatHistories[targetRoom]) chatHistories[targetRoom] = [];
+                    // New messages received are marked unread until viewed
                     chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false });
+                    
                     if (activeChat === targetRoom) {
-                        addMessageToUI(data.text, false, data.msg_id, targetRoom);
+                        addMessageToUI(data.text, false, data.msg_id, targetRoom, false, false);
                         if (from !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "read", target_user: from }));
                     } else {
                         const f = document.getElementById(`friend-${targetRoom}`); if(f) f.style.boxShadow = "inset 4px 0px 0px var(--accent-highlight)";
                     }
                 } else if (data.type === 'typing' && activeChat === data.from_user) {
                     showTyping(data.from_user); clearTimeout(window.tTimer); window.tTimer = setTimeout(removeTyping, 3000);
-                } else if (data.type === 'read_receipt' && activeChat === data.from_user) {
-                    document.querySelectorAll('.read-receipt').forEach(el => { el.innerHTML = '✓✓'; el.classList.add('read'); });
+                } else if (data.type === 'read_receipt') {
+                    // 1. UPDATE CACHE SO READ STATUS PERSISTS
+                    if (chatHistories[data.from_user]) {
+                        chatHistories[data.from_user].forEach(m => { if(m.isSelf) m.read = true; });
+                    }
+                    // 2. UPDATE LIVE UI IF ACTIVE
+                    if (activeChat === data.from_user) {
+                        document.querySelectorAll('.read-receipt').forEach(el => { el.innerHTML = '✓✓'; el.classList.add('read'); });
+                    }
                 } else if (data.type === 'reaction') applyReactionToUI(data.msg_id, data.emoji);
             };
             ws.onclose = () => setTimeout(connectWebSocket, 3000);
         }
 
-        function addMessageToUI(text, isSelf, msgId, chatRoom) {
+        // Updated to process read/delivered state correctly
+        function addMessageToUI(text, isSelf, msgId, chatRoom, isRead = false, isDelivered = false) {
             const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${isSelf ? 'msg-user' : 'msg-nyelle'}`;
             const pfp = isSelf ? renderPfp(currentUserPfp) : (chatRoom === 'NYELLE_CORE' ? 'N' : renderPfp(friendsList[chatRoom]?.pfp));
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            wrap.innerHTML = `<div class="bubble-pfp">${pfp}</div><div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${msgId}"><p>${text}</p>${isSelf ? `<span class="read-receipt" id="r-${msgId}">✓</span>` : ''}</div><div class="dots-trigger" onclick="openMsgMenu(event, '${msgId}')">⋮</div>`;
+            
+            let receipt = '';
+            if (isSelf) {
+                if (isRead) receipt = `<span class="read-receipt read" id="r-${msgId}">✓✓</span>`;
+                else if (isDelivered) receipt = `<span class="read-receipt" id="r-${msgId}">✓✓</span>`;
+                else receipt = `<span class="read-receipt" id="r-${msgId}">✓</span>`;
+            }
+
+            wrap.innerHTML = `<div class="bubble-pfp">${pfp}</div><div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${msgId}"><p>${text}</p>${receipt}</div><div class="dots-trigger" onclick="openMsgMenu(event, '${msgId}')">⋮</div>`;
             document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
         }
 
@@ -333,21 +343,13 @@
         function openMsgMenu(e, id) { e.stopPropagation(); activeMenuMsgId = id; const menu = document.getElementById('msg-context-menu'), bubble = document.getElementById(`msg-${id}`); if(!bubble) return; document.getElementById('msg-time-info').textContent = `Sent at ${bubble.dataset.time}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${isMobile() ? e.clientX - 100 : e.clientX}px`; }
         function openFriendMenu(e, code) { e.stopPropagation(); activeMenuFriendCode = code; const menu = document.getElementById('friend-context-menu'); document.getElementById('friend-status-info').textContent = `Code: ${code}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${e.clientX}px`; }
         
-        window.onclick = () => { 
-            document.getElementById('msg-context-menu').style.display = 'none'; 
-            document.getElementById('friend-context-menu').style.display = 'none'; 
-            document.getElementById('my-profile-menu').style.display = 'none';
-        };
+        window.onclick = () => { document.getElementById('msg-context-menu').style.display = 'none'; document.getElementById('friend-context-menu').style.display = 'none'; document.getElementById('my-profile-menu').style.display = 'none'; };
 
         function addReaction(emoji) {
             if (!activeMenuMsgId) return; applyReactionToUI(activeMenuMsgId, emoji);
             if (ws && ws.readyState === 1 && activeChat !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "reaction", target_user: activeChat, msg_id: activeMenuMsgId, emoji: emoji }));
         }
-        function applyReactionToUI(id, emoji) {
-            const b = document.getElementById(`msg-${id}`); if (!b) return;
-            let badge = b.querySelector('.react-badge'); if(!badge) { badge = document.createElement('div'); badge.className = 'react-badge'; b.appendChild(badge); }
-            badge.textContent = emoji;
-        }
+        function applyReactionToUI(id, emoji) { const b = document.getElementById(`msg-${id}`); if (!b) return; let badge = b.querySelector('.react-badge'); if(!badge) { badge = document.createElement('div'); badge.className = 'react-badge'; b.appendChild(badge); } badge.textContent = emoji; }
 
         function deleteMessage() { if (activeMenuMsgId) document.getElementById(`msg-${activeMenuMsgId}`).parentElement.remove(); }
         function unfriendUser() { if (activeMenuFriendCode && confirm(`Unfriend ${friendsList[activeMenuFriendCode].name}?`)) { delete friendsList[activeMenuFriendCode]; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshFriendList(); switchChat('NYELLE_CORE'); } }
@@ -358,29 +360,39 @@
             document.getElementById('chat-content').innerHTML = '';
             document.getElementById('mob-name').textContent = code === 'NYELLE_CORE' ? 'Nyelle' : friendsList[code].name;
             document.getElementById('mob-pfp').innerHTML = code === 'NYELLE_CORE' ? 'N' : renderPfp(friendsList[code].pfp);
-            if (!chatHistories[code] || chatHistories[code].length === 0) loadChatHistory(code, code === 'NYELLE_CORE' ? currentUserCode : `DM_${[currentUserCode, code].sort().join('_')}`);
-            else chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code));
+            
+            if (!chatHistories[code] || chatHistories[code].length === 0) {
+                loadChatHistory(code, code === 'NYELLE_CORE' ? currentUserCode : `DM_${[currentUserCode, code].sort().join('_')}`);
+            } else {
+                // Pass the cached read/delivery status so UI renders them perfectly
+                chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code, m.read, m.delivered));
+            }
+
+            // CRITICAL FIX: Tell the backend we opened this user's tab so they get the blue ticks!
+            if (code !== 'NYELLE_CORE' && ws && ws.readyState === 1) {
+                ws.send(JSON.stringify({ type: "read", target_user: code }));
+            }
         }
 
         async function loadChatHistory(localKey, remoteId) {
             try {
                 const res = await fetch(`${API_URL}/history/${remoteId}`, { headers: {'ngrok-skip-browser-warning': 'true'} });
                 const data = await res.json();
-                chatHistories[localKey] = (data.history || []).map(m => ({ id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode }));
-                chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey));
+                chatHistories[localKey] = (data.history || []).map(m => ({ 
+                    id: "hist_"+Math.random(), 
+                    text: m.content, 
+                    isSelf: m.role === 'User' || m.role === currentUserCode,
+                    read: true,      // Assume old db history is fully read
+                    delivered: true  // Assume old db history is fully delivered
+                }));
+                chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey, m.read, m.delivered));
             } catch(e) {}
         }
 
         function refreshFriendList() {
             const list = document.getElementById('dm-list'); list.innerHTML = '';
             Object.entries(friendsList).forEach(([code, info]) => {
-                list.innerHTML += `
-                    <div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')">
-                        <div class="avatar-mini">${renderPfp(info.pfp)}</div>
-                        <span style="font-weight:bold; flex:1;">${info.name}</span>
-                        <div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div>
-                        <div class="status-dot online"></div>
-                    </div>`;
+                list.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">${renderPfp(info.pfp)}</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div><div class="status-dot online"></div></div>`;
             });
         }
 
@@ -404,15 +416,19 @@
         document.getElementById('send-btn').onclick = () => {
             const text = inputField.value.trim(); if (!text || !ws || ws.readyState !== 1) return;
             const tempId = "msg_" + (Date.now() + Math.random().toString(36).substr(2, 5));
+            
             if (!chatHistories[activeChat]) chatHistories[activeChat] = [];
-            chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true });
-            addMessageToUI(text, true, tempId, activeChat);
+            // Init fresh messages with false status
+            chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true, delivered: false, read: false });
+            
+            addMessageToUI(text, true, tempId, activeChat, false, false);
             ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, text: text, msg_id: tempId, pfp: currentUserPfp }));
             inputField.value = ''; if (activeChat === 'NYELLE_CORE') showTyping('NYELLE_CORE');
         };
         inputField.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
 
         function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshFriendList(); switchChat('NYELLE_CORE'); connectWebSocket(); syncFriendProfiles(); }
+        function isMobile() { return window.innerWidth < 800; }
         function showTyping(code) { removeTyping(); const wrap = document.createElement('div'); wrap.className = 'msg-wrapper msg-nyelle'; wrap.id = 'typing-indicator'; wrap.innerHTML = `<div class="bubble-pfp">${code==='NYELLE_CORE'?'N':renderPfp(friendsList[code]?.pfp)}</div><div class="toon-bubble nyelle-msg"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`; document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight; }
         function removeTyping() { const t = document.getElementById('typing-indicator'); if (t) t.remove(); }
     </script>
