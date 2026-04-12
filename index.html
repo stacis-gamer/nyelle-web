@@ -80,7 +80,6 @@
         .main-chat { flex: 1; width: 100%; display: flex; flex-direction: column; background: var(--bg-panel); position: relative; overflow: hidden; height: 100%; }
         .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; z-index: 10; flex-shrink: 0;}
         
-        /* CHAT CONTAINER: Uses flex-grow to push input down and min-height to prevent overflow */
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; align-items: center; width: 100%; min-height: 0; }
         .chat-content { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 28px; }
         .msg-wrapper { display: flex; gap: 10px; align-items: flex-end; max-width: 85%; position: relative; }
@@ -111,7 +110,6 @@
         @keyframes flashMsg { 0% { filter: brightness(1); } 50% { filter: brightness(1.7); transform: scale(1.02); } 100% { filter: brightness(1); transform: scale(1); } }
         .highlight-flash { animation: flashMsg 0.8s ease; }
 
-        /* INPUT BAR: Extra bottom padding for mobile home gesture bars */
         .input-wrapper { padding: 15px 20px calc(15px + env(safe-area-inset-bottom)); background: var(--bg-darker); display: flex; flex-direction: column; align-items: center; width: 100%; flex-shrink: 0; border-top: 1px solid #111; }
         .input-container { width: 100%; max-width: 800px; display: flex; gap: 12px; }
         .toon-input { flex: 1; background: var(--bg-darker); border: 3px solid #111; border-radius: 18px; padding: 0 20px; color: white; font-size: 16px; font-weight: bold; outline: none; height: 45px; }
@@ -151,22 +149,20 @@
     <div id="add-friend-overlay" class="overlay" style="display: none;">
         <div class="auth-box">
             <h2>Add Contact</h2>
-            <p>Enter a User Code or Group Code.</p>
             <input type="text" id="friend-code-input" class="toon-input" placeholder="10-CHAR CODE" style="margin-bottom: 10px; padding: 12px; text-align: center;">
             <input type="text" id="friend-name-input" class="toon-input" placeholder="NICKNAME (Optional)" style="margin-bottom: 15px; padding: 12px; text-align: center;">
             <button id="start-dm-btn" class="toon-btn" style="width: 100%;">ADD TO NETWORK</button>
-            <button onclick="document.getElementById('add-friend-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: var(--danger); margin-top: 10px; box-shadow: 0px 6px 0px #a1282c;">CANCEL</button>
+            <button onclick="document.getElementById('add-friend-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: var(--danger); margin-top: 10px;">CANCEL</button>
         </div>
     </div>
 
     <div id="group-info-overlay" class="overlay" style="display: none;">
         <div class="auth-box" style="max-width: 350px;">
             <h2 id="gc-info-title">Loading...</h2>
-            <p style="margin-bottom: 15px;">Active Roster</p>
             <div id="gc-members-list" style="display:flex; flex-direction:column; gap:10px; text-align:left; background:var(--bg-panel); padding:15px; border-radius:10px; margin-bottom:15px; max-height: 200px; overflow-y: auto;">
-                <div style="text-align:center; color:#888;">Fetching data...</div>
+                Fetching data...
             </div>
-            <button onclick="document.getElementById('group-info-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: #313338; box-shadow: 0 4px 0 #111;">CLOSE</button>
+            <button onclick="document.getElementById('group-info-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: #313338;">CLOSE</button>
         </div>
     </div>
 
@@ -204,10 +200,8 @@
                     <div class="avatar-mini" style="background: var(--accent); color: white;">N</div>
                     <span style="font-weight: bold; flex: 1;">Nyelle</span><div class="status-dot online"></div>
                 </div>
-                
                 <div class="section-title" style="margin-top: 20px;">Groups</div>
                 <div id="gc-list"></div>
-
                 <div class="section-title" style="margin-top: 20px;">Direct Messages</div>
                 <div id="dm-list"></div>
                 <button onclick="document.getElementById('add-friend-overlay').style.display='flex'" class="toon-btn" style="width: 100%; margin-top: 20px; font-size: 12px; background: #1e1f22;">+ ADD / JOIN</button>
@@ -220,7 +214,7 @@
                 <div class="avatar-ring" style="width: 35px; height: 35px;" id="mob-pfp" onclick="openMyProfileMenu(event)">N</div>
                 <h2 style="font-size: 16px; margin-left:10px; display:flex; align-items:center; gap:10px; flex:1;">
                     <span id="mob-name">Nyelle</span>
-                    <span id="gc-info-btn" style="display:none; font-size:11px; cursor:pointer; background:var(--accent); color:white; padding:4px 8px; border-radius:10px; font-weight:bold; box-shadow:0 2px 0 var(--accent-shadow);" onclick="showGroupInfo()">👥 INFO</span>
+                    <span id="gc-info-btn" style="display:none; font-size:11px; cursor:pointer; background:var(--accent); color:white; padding:4px 8px; border-radius:10px;" onclick="showGroupInfo()">👥 INFO</span>
                 </h2>
             </header>
             <div class="chat-container" id="chat-box"><div class="chat-content" id="chat-content"></div></div>
@@ -228,12 +222,11 @@
             <div class="input-wrapper">
                 <div id="reply-preview" class="reply-preview">
                     <div style="display: flex; flex-direction: column; overflow: hidden; width: 90%;">
-                        <span id="reply-preview-sender" style="color: var(--accent-highlight); font-weight: bold; font-size: 12px; margin-bottom: 2px;">Replying to...</span>
+                        <span id="reply-preview-sender" style="color: var(--accent-highlight); font-weight: bold; font-size: 12px;">Replying to...</span>
                         <span id="reply-preview-text" style="color: var(--text-muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">...</span>
                     </div>
-                    <div onclick="cancelReply()" style="cursor: pointer; color: var(--text-muted); font-weight: 900; font-size: 16px; padding: 5px;">✕</div>
+                    <div onclick="cancelReply()" style="cursor: pointer; padding: 5px;">✕</div>
                 </div>
-                
                 <div class="input-container">
                     <input type="text" id="user-input" class="toon-input" placeholder="Message..." autocomplete="off">
                     <button id="send-btn" class="toon-btn">SEND</button>
@@ -271,262 +264,118 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('mobile-sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
-            const isOpen = sidebar.classList.contains('open');
-            if(isOpen) {
-                sidebar.classList.remove('open');
-                backdrop.style.display = 'none';
-            } else {
-                sidebar.classList.add('open');
-                backdrop.style.display = 'block';
-            }
+            sidebar.classList.toggle('open');
+            backdrop.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
         }
 
-        document.getElementById('login-btn').onclick = async () => {
-            const code = document.getElementById('access-code').value.trim().toUpperCase();
-            if (!code || !API_URL) return;
-            try {
-                const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ code }) });
-                const data = await res.json();
-                if (data.success) {
-                    currentUserCode = data.user_id; currentUserName = data.user.name;
-                    localStorage.setItem('nyelle_user_code', currentUserCode); localStorage.setItem('nyelle_user_name', currentUserName);
-                    try {
-                        const pfpRes = await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                        const pfpData = await pfpRes.json();
-                        if (pfpData.pfp !== "👤") { currentUserPfp = pfpData.pfp; localStorage.setItem('nyelle_user_pfp', currentUserPfp); }
-                    } catch(e) {}
-                    document.getElementById('login-overlay').style.display = 'none'; document.getElementById('welcome-name').textContent = currentUserName;
-                    if(!currentUserPfp || currentUserPfp === '👤') document.getElementById('profile-overlay').style.display = 'flex';
-                    else startSystem();
-                }
-            } catch(e) { alert("Server error."); }
-        };
-
-        function selectAvatar(el, pfp) { currentUserPfp = pfp; document.querySelectorAll('.avatar-option, #custom-preview').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); }
-        document.getElementById('custom-pfp-upload').onchange = (e) => {
-            const reader = new FileReader();
-            reader.onload = (ev) => { currentUserPfp = ev.target.result; const p = document.getElementById('custom-preview'); p.src = currentUserPfp; p.style.display = 'block'; p.classList.add('selected'); document.querySelectorAll('.avatar-option').forEach(i => i.classList.remove('selected'));};
-            reader.readAsDataURL(e.target.files[0]);
-        };
-
-        function openMyProfileMenu(e) { e.stopPropagation(); const menu = document.getElementById('my-profile-menu'); menu.style.display = 'flex'; menu.style.top = `${e.clientY + 20}px`; menu.style.left = `${isMobile() ? 20 : e.clientX}px`; }
-        function openProfileSetup() { document.getElementById('profile-overlay').style.display = 'flex'; document.getElementById('cancel-setup-btn').style.display = 'block'; }
-        document.getElementById('cancel-setup-btn').onclick = () => { document.getElementById('profile-overlay').style.display = 'none'; }
-
-        document.getElementById('finish-setup-btn').onclick = async () => {
-            localStorage.setItem('nyelle_user_pfp', currentUserPfp); document.getElementById('profile-overlay').style.display = 'none';
-            if (document.getElementById('my-sidebar-pfp')) document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
-            try { await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ pfp: currentUserPfp }) }); } catch(e) {}
-            if(!ws || ws.readyState !== 1) startSystem();
-        };
-
-        function logOut() { localStorage.clear(); location.reload(); }
-        async function wipeMemory() {
-            if(confirm("Wipe Nyelle's memory of you? This cannot be undone.")) {
-                try {
-                    await fetch(`${API_URL}/api/memory/${currentUserCode}`, { method: 'DELETE', headers: {'ngrok-skip-browser-warning': 'true'} });
-                    chatHistories['NYELLE_CORE'] = []; switchChat('NYELLE_CORE'); alert("Memory wiped.");
-                } catch(e) { alert("Failed to connect to server."); }
-            }
-        }
-
-        async function showGroupInfo() {
-            if(!groupsList[activeChat]) return;
-            document.getElementById('gc-info-title').textContent = groupsList[activeChat].name;
-            document.getElementById('gc-members-list').innerHTML = '<div style="text-align:center; color:#888;">Loading...</div>';
-            document.getElementById('group-info-overlay').style.display = 'flex';
-            try {
-                const res = await fetch(`${API_URL}/api/groups/${activeChat}/info`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                const data = await res.json();
-                if(data.success) {
-                    const list = document.getElementById('gc-members-list'); list.innerHTML = '';
-                    data.members.forEach(m => {
-                        list.innerHTML += `<div style="display:flex; align-items:center; gap:10px; font-weight:bold; font-size:14px;"><div class="avatar-mini" style="width:30px; height:30px;">${renderPfp(m.pfp)}</div> ${m.name}</div>`;
-                    });
-                }
-            } catch(e) { document.getElementById('gc-members-list').innerHTML = '<div style="color:var(--danger);">Failed to fetch data</div>'; }
-        }
-
-        async function syncProfiles() {
-            let updated = false;
-            for (let code in friendsList) {
-                try {
-                    const res = await fetch(`${API_URL}/api/user/${code}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                    const data = await res.json();
-                    if(data.pfp && data.pfp !== '👤' && friendsList[code].pfp !== data.pfp) { friendsList[code].pfp = data.pfp; updated = true; }
-                } catch(e) {}
-            }
-            if(updated) { localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshLists(); if(activeChat !== 'NYELLE_CORE' && friendsList[activeChat]) document.getElementById('mob-pfp').innerHTML = renderPfp(friendsList[activeChat].pfp); }
-
-            for (let gCode in groupsList) {
-                try {
-                    const res = await fetch(`${API_URL}/api/groups/${gCode}/info`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                    const data = await res.json();
-                    if(data.success) {
-                        groupMembersCache[gCode] = {};
-                        data.members.forEach(m => { groupMembersCache[gCode][m.code] = m; });
-                    }
-                } catch(e) {}
-            }
-        }
-
+        // --- STABLE WEBSOCKET HANDSHAKE ---
         function connectWebSocket() {
             if (!API_URL) return;
-            if (ws && (ws.readyState === 1 || ws.readyState === 0)) ws.close();
+            if (ws) ws.close();
             ws = new WebSocket(API_URL.replace(/^http/, 'ws') + `/ws/${currentUserCode}`);
             
             ws.onopen = () => {
+                console.log("🟢 Connected");
+                isReconnecting = false;
                 clearInterval(pingInterval);
-                pingInterval = setInterval(() => { if (ws.readyState === 1) ws.send(JSON.stringify({ type: "ping" })); }, 20000); 
-                if (isReconnecting) { chatHistories = {}; switchChat(activeChat); isReconnecting = false; }
+                pingInterval = setInterval(() => { if (ws.readyState === 1) ws.send(JSON.stringify({ type: "ping" })); }, 25000); 
             };
 
             ws.onmessage = (e) => {
                 const data = JSON.parse(e.data);
                 if (data.type === 'pong') return; 
-
                 if (data.type === 'chat') {
                     const from = data.from_user, isSelf = (from === currentUserCode), targetRoom = data.target_room || (isSelf ? activeChat : from);
-                    if (!isSelf && from !== 'NYELLE_CORE' && !data.target_room && friendsList[from] && data.pfp && friendsList[from].pfp !== data.pfp) {
-                        friendsList[from].pfp = data.pfp; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshLists();
-                    }
-                    if (isSelf) {
-                        const tick = document.getElementById(`r-${data.msg_id}`);
-                        if (tick) tick.innerHTML = data.delivered ? '✓✓' : '✓';
-                        return; 
-                    }
+                    if (isSelf) { document.getElementById(`r-${data.msg_id}`)?.classList.add('read'); return; }
                     removeTyping();
                     if (!chatHistories[targetRoom]) chatHistories[targetRoom] = [];
                     const repData = data.reply_to_id ? { id: data.reply_to_id, text: data.reply_to_text, sender: data.reply_to_sender } : null;
-                    chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false, pfp: data.pfp, senderName: data.sender_name, readers: [], replyData: repData });
-                    if (activeChat === targetRoom) {
-                        addMessageToUI(data.text, false, data.msg_id, targetRoom, false, false, data.sender_name, data.pfp, [], repData);
-                        if (from !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "read", target_room: targetRoom, target_user: from, msg_id: data.msg_id, pfp: currentUserPfp }));
-                    } else {
-                        const f = document.getElementById(`friend-${targetRoom}`); if(f) f.style.boxShadow = "inset 4px 0px 0px var(--accent-highlight)";
-                    }
-                } else if (data.type === 'typing') {
-                    const room = data.target_room || data.from_user;
-                    if (activeChat === room) {
-                        let tPfp = '👤';
-                        if (data.from_user === 'NYELLE_CORE') tPfp = 'N';
-                        else if (groupsList[room] && groupMembersCache[room] && groupMembersCache[room][data.from_user]) tPfp = groupMembersCache[room][data.from_user].pfp;
-                        else if (friendsList[data.from_user]) tPfp = friendsList[data.from_user].pfp;
-                        showTyping(tPfp); 
-                        clearTimeout(window.tTimer); window.tTimer = setTimeout(removeTyping, 3000);
-                    }
-                } else if (data.type === 'read_receipt') {
-                    const room = data.target_room || data.from_user;
-                    if (activeChat === room) document.querySelectorAll('.read-receipt').forEach(el => { el.innerHTML = '✓✓'; el.classList.add('read'); });
-                } else if (data.type === 'reaction') applyReactionToUI(data.msg_id, data.emoji);
+                    chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false, pfp: data.pfp, senderName: data.sender_name, replyData: repData });
+                    if (activeChat === targetRoom) addMessageToUI(data.text, false, data.msg_id, targetRoom, false, false, data.sender_name, data.pfp, [], repData);
+                } else if (data.type === 'typing' && activeChat === (data.target_room || data.from_user)) {
+                    showTyping(data.from_user === 'NYELLE_CORE' ? 'N' : (friendsList[data.from_user]?.pfp || '👤'));
+                    clearTimeout(window.tTimer); window.tTimer = setTimeout(removeTyping, 3000);
+                }
             };
-            
             ws.onclose = () => { isReconnecting = true; setTimeout(connectWebSocket, 3000); };
         }
 
+        // AUTO-RECONNECT WHEN TAB BECOMES VISIBLE
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible" && (!ws || ws.readyState !== 1)) connectWebSocket();
+        });
+
         function addMessageToUI(text, isSelf, msgId, chatRoom, isRead = false, isDelivered = false, senderName = null, overridePfp = null, readers = [], replyData = null) {
             const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${isSelf ? 'msg-user' : 'msg-nyelle'}`;
-            let pfpHtml = '';
-            if (isSelf) pfpHtml = renderPfp(currentUserPfp);
-            else if (overridePfp) pfpHtml = renderPfp(overridePfp);
-            else if (chatRoom === 'NYELLE_CORE') pfpHtml = 'N';
-            else pfpHtml = renderPfp(friendsList[chatRoom]?.pfp || '👤');
-
+            let pfpHtml = renderPfp(isSelf ? currentUserPfp : (overridePfp || (chatRoom === 'NYELLE_CORE' ? 'N' : friendsList[chatRoom]?.pfp || '👤')));
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            let receipt = '';
-            if (isSelf) receipt = `<span class="read-receipt ${isRead||isDelivered?'read':''}" id="r-${msgId}">${isRead||isDelivered?'✓✓':'✓'}</span>`;
-
-            let quoteHtml = '';
-            if (replyData && replyData.id) {
-                let safeQuoteText = replyData.text.startsWith('data:image/') ? '📷 Photo' : replyData.text;
-                quoteHtml = `<div class="quote-block" onclick="scrollToMsg('${replyData.id}')"><div class="quote-sender">${replyData.sender}</div><div class="quote-text">${safeQuoteText}</div></div>`;
-            }
-
-            let messageContent = text.startsWith('data:image/') ? `<img class="chat-image" src="${text}">` : `<p>${text}</p>`;
+            let quoteHtml = replyData ? `<div class="quote-block" onclick="scrollToMsg('${replyData.id}')"><div class="quote-sender">${replyData.sender}</div><div class="quote-text">${replyData.text.startsWith('data:image/') ? '📷 Photo' : replyData.text}</div></div>` : '';
+            let content = text.startsWith('data:image/') ? `<img class="chat-image" src="${text}">` : `<p>${text}</p>`;
 
             wrap.innerHTML = `<div class="bubble-pfp">${pfpHtml}</div>
                 <div style="display:flex; flex-direction:column; max-width:100%; align-items: ${isSelf ? 'flex-end' : 'flex-start'};">
                     ${!isSelf && !!groupsList[chatRoom] && senderName ? `<div class="sender-name-label">${senderName}</div>` : ''}
                     <div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${msgId}">
-                        ${quoteHtml}${messageContent}${receipt}
+                        ${quoteHtml}${content}<span class="read-receipt ${isRead||isDelivered?'read':''}" id="r-${msgId}">${isRead||isDelivered?'✓✓':'✓'}</span>
                     </div>
                 </div>
                 <div class="dots-trigger" onclick="openMsgMenu(event, '${msgId}')">⋮</div>`;
-            
-            document.getElementById('chat-content').appendChild(wrap); 
-            document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+            document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
         }
 
+        // --- LONG PRESS EMULATION ---
         let pressTimer;
         document.getElementById('chat-content').addEventListener('touchstart', (e) => {
             const bubble = e.target.closest('.toon-bubble');
             if (!bubble) return;
-            const msgIdStr = bubble.id.replace('msg-', '');
-            const touch = e.touches[0];
             pressTimer = setTimeout(() => {
                 if (navigator.vibrate) navigator.vibrate(50);
-                openMsgMenu({ clientX: touch.clientX, clientY: touch.clientY, stopPropagation: () => {} }, msgIdStr);
+                openMsgMenu({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY, stopPropagation: () => {} }, bubble.id.replace('msg-', ''));
             }, 500);
         }, {passive: true});
-
         document.getElementById('chat-content').addEventListener('touchend', () => clearTimeout(pressTimer));
-        document.getElementById('chat-content').addEventListener('touchmove', () => clearTimeout(pressTimer));
 
-        function scrollToMsg(id) {
-            const el = document.getElementById(`msg-${id}`);
-            if (el) { el.scrollIntoView({behavior: 'smooth', block: 'center'}); el.classList.add('highlight-flash'); setTimeout(() => el.classList.remove('highlight-flash'), 800); }
-        }
-
-        function prepareReply() {
-            if (!activeMenuMsgId) return;
-            const bubble = document.getElementById(`msg-${activeMenuMsgId}`);
-            let text = bubble.querySelector('.chat-image') ? '📷 Photo' : (bubble.querySelector('p')?.innerText || 'Message');
-            let sender = bubble.closest('.msg-wrapper').classList.contains('msg-user') ? currentUserName : (activeChat==='NYELLE_CORE'?'Nyelle':(friendsList[activeChat]?.name||'User'));
-            replyingTo = { id: activeMenuMsgId, text: text, sender: sender };
-            document.getElementById('reply-preview-sender').innerText = `Replying to ${sender}`;
-            document.getElementById('reply-preview-text').innerText = text;
-            document.getElementById('reply-preview').style.display = 'flex';
-            document.getElementById('user-input').focus();
-            document.getElementById('msg-context-menu').style.display = 'none';
-        }
-
+        // --- CORE FUNCTIONS ---
+        function scrollToMsg(id) { const el = document.getElementById(`msg-${id}`); if (el) { el.scrollIntoView({behavior: 'smooth', block: 'center'}); el.classList.add('highlight-flash'); setTimeout(() => el.classList.remove('highlight-flash'), 800); } }
+        function prepareReply() { if (!activeMenuMsgId) return; const b = document.getElementById(`msg-${activeMenuMsgId}`); let t = b.querySelector('.chat-image') ? '📷 Photo' : b.querySelector('p')?.innerText; let s = b.closest('.msg-wrapper').classList.contains('msg-user') ? currentUserName : (activeChat==='NYELLE_CORE'?'Nyelle':(friendsList[activeChat]?.name||'User')); replyingTo = { id: activeMenuMsgId, text: t, sender: s }; document.getElementById('reply-preview-sender').innerText = `Replying to ${s}`; document.getElementById('reply-preview-text').innerText = t; document.getElementById('reply-preview').style.display = 'flex'; document.getElementById('user-input').focus(); document.getElementById('msg-context-menu').style.display = 'none'; }
         function cancelReply() { replyingTo = null; document.getElementById('reply-preview').style.display = 'none'; }
         function renderPfp(p) { return (p && p.startsWith('data:image')) ? `<img src="${p}">` : (p || '👤'); }
-        function openMsgMenu(e, id) { e.stopPropagation(); activeMenuMsgId = id; const menu = document.getElementById('msg-context-menu'), bubble = document.getElementById(`msg-${id}`); if(!bubble) return; document.getElementById('msg-time-info').textContent = `Sent at ${bubble.dataset.time}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${Math.min(e.clientX, window.innerWidth - 160)}px`; }
-        function openFriendMenu(e, code) { e.stopPropagation(); activeMenuFriendCode = code; const menu = document.getElementById('friend-context-menu'); document.getElementById('friend-status-info').textContent = `Code: ${code}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${e.clientX}px`; }
+        function openMsgMenu(e, id) { e.stopPropagation(); activeMenuMsgId = id; const menu = document.getElementById('msg-context-menu'), b = document.getElementById(`msg-${id}`); if(!b) return; document.getElementById('msg-time-info').textContent = `Sent at ${b.dataset.time}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${Math.min(e.clientX, window.innerWidth - 160)}px`; }
         window.onclick = () => { document.getElementById('msg-context-menu').style.display = 'none'; document.getElementById('friend-context-menu').style.display = 'none'; document.getElementById('my-profile-menu').style.display = 'none'; };
         function addReaction(emoji) { if (!activeMenuMsgId) return; applyReactionToUI(activeMenuMsgId, emoji); if (ws?.readyState === 1 && activeChat !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "reaction", target_room: activeChat, target_user: activeChat, msg_id: activeMenuMsgId, emoji: emoji })); }
-        function applyReactionToUI(id, emoji) { const b = document.getElementById(`msg-${id}`); if (!b) return; let badge = b.querySelector('.react-badge'); if(!badge) { badge = document.createElement('div'); badge.className = 'react-badge'; b.appendChild(badge); } badge.textContent = emoji; }
+        function applyReactionToUI(id, emoji) { const b = document.getElementById(`msg-${id}`); if (b) { let badge = b.querySelector('.react-badge') || document.createElement('div'); badge.className = 'react-badge'; badge.textContent = emoji; b.appendChild(badge); } }
         function deleteMessage() { if (activeMenuMsgId) document.getElementById(`msg-${activeMenuMsgId}`).closest('.msg-wrapper').remove(); }
-        function unfriendUser() { if (activeMenuFriendCode && confirm(`Remove ${activeMenuFriendCode}?`)) { delete friendsList[activeMenuFriendCode]; delete groupsList[activeMenuFriendCode]; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); localStorage.setItem('nyelle_groups', JSON.stringify(groupsList)); refreshLists(); switchChat('NYELLE_CORE'); } }
+        function openMyProfileMenu(e) { e.stopPropagation(); const menu = document.getElementById('my-profile-menu'); menu.style.display = 'flex'; menu.style.top = `${e.clientY + 20}px`; menu.style.left = `${isMobile() ? 20 : e.clientX}px`; }
+        function openProfileSetup() { document.getElementById('profile-overlay').style.display = 'flex'; document.getElementById('cancel-setup-btn').style.display = 'block'; }
+        function logOut() { localStorage.clear(); location.reload(); }
+        async function wipeMemory() { if(confirm("Wipe AI memory?")) { await fetch(`${API_URL}/api/memory/${currentUserCode}`, { method: 'DELETE' }); chatHistories['NYELLE_CORE'] = []; switchChat('NYELLE_CORE'); } }
 
         async function switchChat(code) {
             if(isMobile()) { document.getElementById('mobile-sidebar').classList.remove('open'); document.getElementById('sidebar-backdrop').style.display = 'none'; }
-            activeChat = code; document.querySelectorAll('.friend-item').forEach(i => { i.classList.remove('active'); i.style.boxShadow = "none"; });
-            document.getElementById(`friend-${code}`)?.classList.add('active'); 
+            activeChat = code; document.querySelectorAll('.friend-item').forEach(i => i.classList.remove('active')); document.getElementById(`friend-${code}`)?.classList.add('active'); 
             document.getElementById('chat-content').innerHTML = ''; cancelReply(); 
-            const isGroup = !!groupsList[code];
-            document.getElementById('mob-name').textContent = code==='NYELLE_CORE'?'Nyelle':(isGroup?groupsList[code].name:friendsList[code].name);
-            document.getElementById('mob-pfp').innerHTML = code==='NYELLE_CORE'?'N':(isGroup?'🌐':renderPfp(friendsList[code].pfp));
-            document.getElementById('gc-info-btn').style.display = isGroup ? 'flex' : 'none';
-            if (!chatHistories[code]) loadChatHistory(code, code==='NYELLE_CORE'?currentUserCode:(isGroup?code:`DM_${[currentUserCode, code].sort().join('_')}`));
-            else chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code, m.read, m.delivered, m.senderName, m.pfp, m.readers, m.replyData));
+            const isG = !!groupsList[code];
+            document.getElementById('mob-name').textContent = code==='NYELLE_CORE'?'Nyelle':(isG?groupsList[code].name:friendsList[code].name);
+            document.getElementById('mob-pfp').innerHTML = code==='NYELLE_CORE'?'N':(isG?'🌐':renderPfp(friendsList[code].pfp));
+            document.getElementById('gc-info-btn').style.display = isG ? 'flex' : 'none';
+            if (!chatHistories[code]) loadChatHistory(code, code==='NYELLE_CORE'?currentUserCode:(isG?code:`DM_${[currentUserCode, code].sort().join('_')}`));
+            else chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code, false, true, m.senderName, m.pfp, [], m.replyData));
         }
 
         async function loadChatHistory(localKey, remoteId) {
             try {
                 const res = await fetch(`${API_URL}/history/${remoteId}`, { headers: {'ngrok-skip-browser-warning': 'true'} });
                 const data = await res.json();
-                chatHistories[localKey] = (data.history || []).map(m => ({ id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode, read: true, delivered: true, readers: [], senderName: m.role, pfp: null, replyData: null }));
-                chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey, m.read, m.delivered, m.senderName, m.pfp, m.readers, m.replyData));
+                chatHistories[localKey] = (data.history || []).map(m => ({ id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode, senderName: m.role }));
+                chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey, true, true, m.senderName));
             } catch(e) {}
         }
 
         function refreshLists() {
             const dmL = document.getElementById('dm-list'); dmL.innerHTML = '';
-            Object.entries(friendsList).forEach(([c, i]) => { dmL.innerHTML += `<div class="friend-item" id="friend-${c}" onclick="switchChat('${c}')"><div class="avatar-mini">${renderPfp(i.pfp)}</div><span style="font-weight:bold; flex:1;">${i.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${c}')">⋮</div><div class="status-dot online"></div></div>`; });
+            Object.entries(friendsList).forEach(([c, i]) => { dmL.innerHTML += `<div class="friend-item" id="friend-${c}" onclick="switchChat('${c}')"><div class="avatar-mini">${renderPfp(i.pfp)}</div><span style="font-weight:bold; flex:1;">${i.name}</span><div class="status-dot online"></div></div>`; });
             const gcL = document.getElementById('gc-list'); gcL.innerHTML = '';
-            Object.entries(groupsList).forEach(([c, i]) => { gcL.innerHTML += `<div class="friend-item" id="friend-${c}" onclick="switchChat('${c}')"><div class="avatar-mini">🌐</div><span style="font-weight:bold; flex:1;">${i.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${c}')">⋮</div></div>`; });
+            Object.entries(groupsList).forEach(([c, i]) => { gcL.innerHTML += `<div class="friend-item" id="friend-${c}" onclick="switchChat('${c}')"><div class="avatar-mini">🌐</div><span style="font-weight:bold; flex:1;">${i.name}</span></div>`; });
         }
 
         document.getElementById('start-dm-btn').onclick = async () => {
@@ -535,7 +384,7 @@
                 try {
                     const res = await fetch(`${API_URL}/api/resolve/${code}`, {headers:{'ngrok-skip-browser-warning':'true'}});
                     const data = await res.json();
-                    if(data.type === "group") { await fetch(`${API_URL}/api/groups/${code}/join`, { method: 'POST', headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'}, body: JSON.stringify({user_code:currentUserCode}) }); groupsList[code] = { name: data.name, pfp: '🌐' }; localStorage.setItem('nyelle_groups', JSON.stringify(groupsList)); }
+                    if(data.type === "group") { await fetch(`${API_URL}/api/groups/${code}/join`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({user_code:currentUserCode}) }); groupsList[code] = { name: data.name }; localStorage.setItem('nyelle_groups', JSON.stringify(groupsList)); }
                     else { friendsList[code] = { name: document.getElementById('friend-name-input').value.trim() || 'User', pfp: data.pfp }; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); }
                 } catch(e) {}
                 refreshLists(); document.getElementById('add-friend-overlay').style.display='none'; switchChat(code); 
@@ -545,19 +394,20 @@
         const inputF = document.getElementById('user-input');
         document.getElementById('send-btn').onclick = () => {
             const text = inputF.value.trim(); if (!text || ws?.readyState !== 1) return;
-            const tempId = "msg_" + (Date.now() + Math.random().toString(36).substr(2, 5));
+            const tempId = "msg_" + Date.now();
             const repD = replyingTo ? { ...replyingTo } : null;
             if (!chatHistories[activeChat]) chatHistories[activeChat] = [];
-            chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true, delivered: false, read: false, replyData: repD });
+            chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true, replyData: repD });
             addMessageToUI(text, true, tempId, activeChat, false, false, null, null, [], repD);
             ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, target_room: activeChat, text: text, msg_id: tempId, pfp: currentUserPfp, sender_name: currentUserName, reply_to_id: repD?.id, reply_to_text: repD?.text, reply_to_sender: repD?.sender }));
             inputF.value = ''; cancelReply(); 
         };
         inputF.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
-        function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshLists(); switchChat('NYELLE_CORE'); connectWebSocket(); syncProfiles(); }
+        function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshLists(); switchChat('NYELLE_CORE'); connectWebSocket(); }
         function isMobile() { return window.innerWidth < 800; }
         function showTyping(p) { removeTyping(); const w = document.createElement('div'); w.className = 'msg-wrapper msg-nyelle'; w.id = 'typing-indicator'; w.innerHTML = `<div class="bubble-pfp">${renderPfp(p)}</div><div class="toon-bubble nyelle-msg"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`; document.getElementById('chat-content').appendChild(w); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight; }
         function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
+        function selectAvatar(el, pfp) { currentUserPfp = pfp; document.querySelectorAll('.avatar-option').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); }
     </script>
 </body>
 </html>
