@@ -190,7 +190,7 @@
     <script>
         let API_URL = '', currentUserCode = localStorage.getItem('nyelle_user_code'), currentUserName = localStorage.getItem('nyelle_user_name'), currentUserPfp = localStorage.getItem('nyelle_user_pfp'), ws, activeChat = 'NYELLE_CORE', chatHistories = { 'NYELLE_CORE': [] }, friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {}, groupsList = JSON.parse(localStorage.getItem('nyelle_groups')) || {}, activeMenuMsgId = null, activeMenuFriendCode = null;
         let groupMembersCache = {}; 
-        let pingInterval;
+        let pingInterval, pongTimeout;
         let isReconnecting = false;
 
         const firebaseConfig = { apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs", projectId: "zane-c0ce1", appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c" };
@@ -301,18 +301,30 @@
 
         function connectWebSocket() {
             if (!API_URL) return;
-            if (ws && ws.readyState === 1) ws.close();
+            if (ws && (ws.readyState === 1 || ws.readyState === 0)) ws.close();
             ws = new WebSocket(API_URL.replace(/^http/, 'ws') + `/ws/${currentUserCode}`);
             
             ws.onopen = () => {
                 console.log("WebSocket connected securely.");
                 clearInterval(pingInterval);
-                pingInterval = setInterval(() => { if (ws.readyState === 1) ws.send(JSON.stringify({ type: "ping" })); }, 20000); 
+                clearTimeout(pongTimeout);
+                
+                // NEW TWO-WAY HEARTBEAT
+                pingInterval = setInterval(() => { 
+                    if (ws.readyState === 1) {
+                        ws.send(JSON.stringify({ type: "ping" })); 
+                        // If no pong in 5 seconds, kill the ghost socket!
+                        pongTimeout = setTimeout(() => {
+                            console.warn("Ghost Connection Detected (No Pong). Forcing reconnect...");
+                            ws.close();
+                        }, 5000); 
+                    }
+                }, 15000); 
 
+                // AUTO-RECOVERY
                 if (isReconnecting) {
                     console.log("Recovering missed messages...");
-                    // FORCE CACHE WIPE SO WE FETCH THE TRUTH FROM THE DATABASE
-                    chatHistories = {};
+                    chatHistories = {}; // Force a complete pull from database
                     switchChat(activeChat); 
                     isReconnecting = false;
                 }
@@ -320,6 +332,13 @@
 
             ws.onmessage = (e) => {
                 const data = JSON.parse(e.data);
+                
+                // Clear the kill-switch if server replies!
+                if (data.type === 'pong') {
+                    clearTimeout(pongTimeout);
+                    return;
+                }
+
                 if (data.type === 'chat') {
                     const from = data.from_user, isSelf = (from === currentUserCode), targetRoom = data.target_room || (isSelf ? activeChat : from);
                     
@@ -389,8 +408,9 @@
             };
             
             ws.onclose = () => {
-                console.log("Connection dropped. Retrying...");
+                console.warn("Connection dropped. Retrying in 3s...");
                 clearInterval(pingInterval);
+                clearTimeout(pongTimeout);
                 isReconnecting = true;
                 setTimeout(connectWebSocket, 3000);
             };
