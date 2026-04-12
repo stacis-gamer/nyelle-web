@@ -5,43 +5,69 @@
     <title>Nyelle - Master Control</title>
     <style>
         body { background: #1e1f22; color: #f2f3f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; }
-        .container { max-width: 800px; margin: 0 auto; background: #2b2d31; padding: 25px; border-radius: 10px; box-shadow: 0px 8px 20px rgba(0,0,0,0.4); }
+        .container { max-width: 900px; margin: 0 auto; background: #2b2d31; padding: 25px; border-radius: 10px; box-shadow: 0px 8px 20px rgba(0,0,0,0.4); }
         h1 { color: #5865F2; margin-bottom: 5px; }
-        .status { font-size: 13px; font-weight: bold; color: #b5bac1; margin-bottom: 25px; display: inline-block; padding: 5px 10px; background: #1e1f22; border-radius: 5px; }
+        .status { font-size: 13px; font-weight: bold; color: #b5bac1; margin-bottom: 25px; display: inline-block; padding: 8px 15px; background: #1e1f22; border-radius: 5px; border-left: 4px solid #444; }
+        .status.live { border-left-color: #23a559; color: #23a559; }
         
-        input, button { padding: 12px; margin: 5px 5px 5px 0; border-radius: 6px; border: none; outline: none; }
-        input { background: #1e1f22; color: white; width: 220px; border: 2px solid transparent; transition: 0.2s; }
+        .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .card { background: #1e1f22; padding: 20px; border-radius: 8px; border: 1px solid #313338; }
+        h3 { margin-bottom: 15px; color: #b5bac1; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+
+        input, button { padding: 12px; margin: 5px 0; border-radius: 6px; border: none; outline: none; display: block; width: 100%; }
+        input { background: #2b2d31; color: white; border: 2px solid transparent; transition: 0.2s; }
         input:focus { border-color: #5865F2; }
         
-        button { background: #5865F2; color: white; cursor: pointer; font-weight: bold; transition: 0.1s; }
+        button { background: #5865F2; color: white; cursor: pointer; font-weight: bold; transition: 0.1s; margin-top: 10px; }
+        button:hover { background: #4752c4; }
         button:active { transform: translateY(2px); }
-        button.delete { background: #da373c; padding: 8px 12px; }
+        button.delete { background: #da373c; padding: 8px 12px; width: auto; display: inline-block; margin: 0; }
+        button.delete:hover { background: #a1282c; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: #1e1f22; border-radius: 8px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #1e1f22; border-radius: 8px; overflow: hidden; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #2b2d31; }
-        th { background: #111214; color: #b5bac1; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        th { background: #111214; color: #b5bac1; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
         
-        .code-box { font-family: monospace; background: #111; padding: 6px 12px; border-radius: 4px; letter-spacing: 2px; color: #58f28a; font-size: 16px; font-weight: bold; }
+        .code-box { font-family: monospace; background: #111; padding: 6px 12px; border-radius: 4px; letter-spacing: 2px; color: #58f28a; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Nyelle Core - Access Management</h1>
-        <div id="connection-status" class="status">🟡 Routing via Firebase...</div>
+        <h1>Nyelle Core - Master Control</h1>
+        <div id="connection-status" class="status">🟡 Syncing with Firebase...</div>
         
-        <div style="background: #1e1f22; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #313338;">
-            <h3 style="margin-bottom: 15px; color: #f2f3f5;">Generate Access Code</h3>
-            <input type="text" id="new-name" placeholder="Friend's Name">
-            <input type="number" id="new-age" placeholder="Age">
-            <button onclick="createUser()">+ Create User</button>
+        <div class="panel-grid">
+            <div class="card">
+                <h3>Global Routing (Remote Config)</h3>
+                <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Update the ngrok URL stored in Firebase.</p>
+                <input type="text" id="new-url" placeholder="https://....ngrok-free.dev">
+                <button onclick="updateRemoteUrl()">Update Server Route</button>
+            </div>
+
+            <div class="card">
+                <h3>Generate Access Code</h3>
+                <input type="text" id="new-name" placeholder="Friend's Name">
+                <input type="number" id="new-age" placeholder="Age">
+                <button onclick="createUser()">+ Create User</button>
+            </div>
         </div>
 
-        <table>
-            <thead><tr><th>Name</th><th>Age</th><th>Access Code (Give this to them)</th><th>Actions</th></tr></thead>
-            <tbody id="user-list">
-                <tr><td colspan="4" style="text-align: center; color: #b5bac1;">Loading users...</td></tr>
-            </tbody>
-        </table>
+        <div class="card" style="width: 100%;">
+            <h3>Active Network Users</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Access Code</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-list">
+                    <tr><td colspan="4" style="text-align: center; color: #888;">Connecting to backend...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -50,50 +76,47 @@
     <script>
         let API_URL = '';
 
-        // --- FIREBASE CONFIG ---
+        // --- YOUR CONFIGS ---
         const firebaseConfig = {
             apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs",
             projectId: "zane-c0ce1", 
             appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const remoteConfig = firebase.remoteConfig();
-        remoteConfig.settings.minimumFetchIntervalMillis = 0; // Force immediate fetch for dev
+        remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
-        async function initializeDynamicConnection() {
+        async function init() {
             try {
                 await remoteConfig.fetchAndActivate();
                 API_URL = remoteConfig.getString('nyelle_server_url');
                 
-                if (!API_URL) throw new Error("URL is empty in Firebase");
-                
-                console.log("Admin Panel connected to Core at:", API_URL);
-                document.getElementById('connection-status').innerHTML = `🟢 Live: <b>${API_URL}</b>`;
+                if (!API_URL) throw new Error("No URL found");
 
-                // Now that we have the URL, load the user database
+                const statusEl = document.getElementById('connection-status');
+                statusEl.innerHTML = `🟢 Live Backend: <b>${API_URL}</b>`;
+                statusEl.classList.add('live');
+                document.getElementById('new-url').value = API_URL;
+
                 loadUsers();
             } catch (err) {
-                console.error("Firebase Routing Error:", err);
-                document.getElementById('connection-status').innerHTML = "🔴 System Offline (Could not fetch route)";
+                document.getElementById('connection-status').innerHTML = "🔴 Firebase Route Offline";
             }
         }
 
-        // Boot the admin panel connection
-        initializeDynamicConnection();
-
-        // --- ADMIN FUNCTIONS ---
         async function loadUsers() {
-            if (!API_URL) return;
             try {
-                const res = await fetch(`${API_URL}/admin/users`);
+                // ADDED THE BYPASS HEADER HERE
+                const res = await fetch(`${API_URL}/admin/users`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
                 const users = await res.json();
                 const tbody = document.getElementById('user-list');
                 tbody.innerHTML = '';
                 
                 for (const [code, data] of Object.entries(users)) {
-                    if (data.role === 'admin') continue; // Hide your master key
+                    if (data.role === 'admin') continue;
                     tbody.innerHTML += `
                         <tr>
                             <td><strong>${data.name}</strong></td>
@@ -104,43 +127,45 @@
                     `;
                 }
             } catch (e) {
-                document.getElementById('user-list').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Backend offline or unreachable.</td></tr>`;
+                document.getElementById('user-list').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Backend connection failed. Check ngrok.</td></tr>`;
             }
         }
 
         async function createUser() {
-            if (!API_URL) return alert("System not connected yet.");
-            
             const name = document.getElementById('new-name').value.trim();
             const age = document.getElementById('new-age').value.trim();
-            if (!name || !age) return alert("Fill out name and age.");
+            if (!name || !age) return alert("Enter name and age");
 
             try {
                 await fetch(`${API_URL}/admin/users/add`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({ name, age: parseInt(age) })
                 });
-                
-                document.getElementById('new-name').value = '';
-                document.getElementById('new-age').value = '';
-                loadUsers();
-            } catch (e) {
-                alert("Failed to create user. Backend might be offline.");
-            }
+                location.reload();
+            } catch (e) { alert("Failed to add user."); }
         }
 
         async function deleteUser(code) {
-            if (!API_URL) return;
-            if (!confirm("Permanently revoke access for this code? They will be locked out.")) return;
-            
+            if (!confirm("Revoke access for this user?")) return;
             try {
-                await fetch(`${API_URL}/admin/users/${code}`, { method: 'DELETE' });
+                await fetch(`${API_URL}/admin/users/${code}`, { 
+                    method: 'DELETE',
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
                 loadUsers();
-            } catch (e) {
-                alert("Failed to revoke user.");
-            }
+            } catch (e) { alert("Failed to delete."); }
         }
+
+        function updateRemoteUrl() {
+            alert("To update the route, change the 'nyelle_server_url' parameter in your Firebase Remote Config console and click 'Publish Changes'.");
+            window.open("https://console.firebase.google.com/project/zane-c0ce1/config", "_blank");
+        }
+
+        init();
     </script>
 </body>
 </html>
