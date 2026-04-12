@@ -5,32 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nyelle Social</title>
     <style>
-        /* =========================================
-           BASE RESET & VARIABLES
-           ========================================= */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
-
         :root {
-            --bg-darker: #1e1f22; 
-            --bg-dark: #2b2d31;   
-            --bg-panel: #313338;  
-            --accent: #5865F2;    
-            --accent-shadow: #3b429f;
-            --accent-highlight: #8ea1ff;
-            --bubble-nyelle: #383a40;
-            --bubble-nyelle-shadow: #1e1f22;
-            --text-main: #f2f3f5;
-            --text-muted: #b5bac1;
-            --success: #23a559;
-            --danger: #da373c;
+            --bg-darker: #1e1f22; --bg-dark: #2b2d31; --bg-panel: #313338;  
+            --accent: #5865F2; --accent-shadow: #3b429f; --accent-highlight: #8ea1ff;
+            --bubble-nyelle: #383a40; --bubble-nyelle-shadow: #1e1f22;
+            --text-main: #f2f3f5; --text-muted: #b5bac1;
+            --success: #23a559; --danger: #da373c;
         }
-
         body { background-color: var(--bg-darker); height: 100vh; display: flex; overflow: hidden; color: var(--text-main); }
 
         /* --- OVERLAYS & MENUS --- */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 999; }
         .auth-box { background: var(--bg-dark); padding: 35px 25px; border-radius: 20px; border: 2px solid #111; box-shadow: 0px 10px 30px rgba(0,0,0,0.8); text-align: center; width: 90%; max-width: 400px; }
-        
         .context-menu { position: fixed; background: #18191b; border: 1px solid #313338; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: none; flex-direction: column; z-index: 1000; min-width: 150px; padding: 6px; }
         .menu-item { padding: 8px 12px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; border-radius: 4px; display: flex; align-items: center; gap: 8px; transition: 0.1s; }
         .menu-item:hover { background: var(--accent); }
@@ -41,10 +28,8 @@
         .app-layout { display: flex; width: 100%; height: 100%; }
         .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; }
         @media (min-width: 800px) { .sidebar { display: flex; } }
-        
         .sidebar-header { padding: 20px; border-bottom: 2px solid var(--bg-darker); display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
         .sidebar-header:hover { background: var(--bg-panel); }
-
         .avatar-ring { width: 45px; height: 45px; background: var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 3px solid var(--text-main); overflow: hidden; flex-shrink: 0; box-shadow: 0px 4px 0px var(--accent-shadow); font-weight: bold; font-size: 18px; }
         .avatar-ring img { width: 100%; height: 100%; object-fit: cover; }
         .sidebar-content { flex: 1; overflow-y: auto; padding: 15px 10px; }
@@ -75,12 +60,10 @@
         .user-msg { background: var(--accent); border: 2px solid var(--accent-shadow); border-bottom-right-radius: 4px; }
         .dots-trigger { opacity: 0; cursor: pointer; color: var(--text-muted); padding: 0 8px; font-size: 18px; transition: 0.2s; align-self: center; }
         .msg-wrapper:hover .dots-trigger { opacity: 1; }
-        
-        /* Updated Read Receipt Colors */
         .read-receipt { font-size: 11px; color: rgba(255,255,255,0.4); position: absolute; bottom: -18px; right: 4px; font-weight: bold; }
         .read-receipt.read { color: #4facfe; }
-        
         .react-badge { position: absolute; bottom: -18px; left: 10px; background: var(--bg-darker); border: 1px solid #111; border-radius: 12px; padding: 2px 6px; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 5; color: white; }
+        .sender-name-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; margin-left: 10px; font-weight: bold;}
 
         /* --- INPUT --- */
         .input-wrapper { padding: 15px 20px 25px 20px; background: linear-gradient(0deg, var(--bg-darker) 0%, transparent 100%); display: flex; justify-content: center; }
@@ -120,11 +103,33 @@
 
     <div id="add-friend-overlay" class="overlay" style="display: none;">
         <div class="auth-box">
-            <h2>Add Friend</h2>
+            <h2>Add Contact</h2>
+            <p>Enter a User Code or Group Code.</p>
             <input type="text" id="friend-code-input" class="toon-input" placeholder="10-CHAR CODE" style="margin-bottom: 10px; padding: 12px; text-align: center;">
-            <input type="text" id="friend-name-input" class="toon-input" placeholder="NICKNAME" style="margin-bottom: 15px; padding: 12px; text-align: center;">
-            <button id="start-dm-btn" class="toon-btn" style="width: 100%;">ADD TO LIST</button>
+            <input type="text" id="friend-name-input" class="toon-input" placeholder="NICKNAME (Optional)" style="margin-bottom: 15px; padding: 12px; text-align: center;">
+            <button id="start-dm-btn" class="toon-btn" style="width: 100%;">ADD TO NETWORK</button>
             <button onclick="document.getElementById('add-friend-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: var(--danger); margin-top: 10px; box-shadow: 0px 6px 0px #a1282c;">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="admin-panel-overlay" class="overlay" style="display: none;">
+        <div class="auth-box" style="max-width: 450px;">
+            <h2>🛡️ Admin Control Panel</h2>
+            <div style="background: var(--bg-panel); padding: 15px; border-radius: 10px; margin: 15px 0; text-align: left;">
+                <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--accent-highlight);">Create Group Chat</h3>
+                <input type="text" id="new-gc-name" class="toon-input" placeholder="Group Name" style="width: 100%; margin-bottom: 10px; padding: 10px; font-size:14px;">
+                <button onclick="createGroupChat()" class="toon-btn" style="width: 100%; padding: 10px; font-size: 13px;">CREATE GC</button>
+            </div>
+            <div style="background: var(--bg-panel); padding: 15px; border-radius: 10px; text-align: left;">
+                <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--danger);">Manage Group Members</h3>
+                <input type="text" id="manage-gc-code" class="toon-input" placeholder="10-CHAR GC CODE" style="width: 100%; margin-bottom: 10px; padding: 10px; font-size:14px;">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="manage-user-code" class="toon-input" placeholder="User Code" style="flex: 1; padding: 10px; font-size:14px;">
+                    <button onclick="manageGroupUser('add')" class="toon-btn" style="padding: 10px; font-size: 12px; background: var(--success); box-shadow: 0 4px 0 #18713c;">ADD</button>
+                    <button onclick="manageGroupUser('kick')" class="toon-btn" style="padding: 10px; font-size: 12px; background: var(--danger); box-shadow: 0 4px 0 #a1282c;">KICK</button>
+                </div>
+            </div>
+            <button onclick="document.getElementById('admin-panel-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: #313338; border-color: #111; box-shadow: 0 4px 0 #111; margin-top: 15px;">CLOSE</button>
         </div>
     </div>
 
@@ -137,12 +142,13 @@
 
     <div id="friend-context-menu" class="context-menu">
         <div class="menu-info" id="friend-status-info">Status: Online</div>
-        <div class="menu-item danger" onclick="unfriendUser()">🗑️ Unfriend & Delete Chat</div>
+        <div class="menu-item danger" onclick="unfriendUser()">🗑️ Delete / Leave</div>
     </div>
 
     <div id="my-profile-menu" class="context-menu">
         <div class="menu-info">Account Settings</div>
         <div class="menu-item" onclick="openProfileSetup()">🖼️ Change Avatar</div>
+        <div class="menu-item" onclick="openAdminPanel()">🛡️ Admin Panel</div>
         <div class="menu-item danger" onclick="wipeMemory()">🧹 Clear AI Memory</div>
         <div class="menu-item danger" onclick="logOut()">🚪 Log Out</div>
     </div>
@@ -159,9 +165,13 @@
                     <div class="avatar-mini" style="background: var(--accent); color: white;">N</div>
                     <span style="font-weight: bold; flex: 1;">Nyelle</span><div class="status-dot online"></div>
                 </div>
+                
+                <div class="section-title" style="margin-top: 20px;">Groups</div>
+                <div id="gc-list"></div>
+
                 <div class="section-title" style="margin-top: 20px;">Direct Messages</div>
                 <div id="dm-list"></div>
-                <button onclick="document.getElementById('add-friend-overlay').style.display='flex'" class="toon-btn" style="width: 100%; margin-top: 20px; font-size: 12px; background: #1e1f22;">+ ADD FRIEND</button>
+                <button onclick="document.getElementById('add-friend-overlay').style.display='flex'" class="toon-btn" style="width: 100%; margin-top: 20px; font-size: 12px; background: #1e1f22;">+ ADD / JOIN</button>
             </div>
         </aside>
 
@@ -184,7 +194,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-remote-config-compat.js"></script>
 
     <script>
-        let API_URL = '', currentUserCode = localStorage.getItem('nyelle_user_code'), currentUserName = localStorage.getItem('nyelle_user_name'), currentUserPfp = localStorage.getItem('nyelle_user_pfp'), ws, activeChat = 'NYELLE_CORE', chatHistories = { 'NYELLE_CORE': [] }, friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {}, activeMenuMsgId = null, activeMenuFriendCode = null;
+        let API_URL = '', currentUserCode = localStorage.getItem('nyelle_user_code'), currentUserName = localStorage.getItem('nyelle_user_name'), currentUserPfp = localStorage.getItem('nyelle_user_pfp'), ws, activeChat = 'NYELLE_CORE', chatHistories = { 'NYELLE_CORE': [] }, friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {}, groupsList = JSON.parse(localStorage.getItem('nyelle_groups')) || {}, activeMenuMsgId = null, activeMenuFriendCode = null;
 
         const firebaseConfig = { apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs", projectId: "zane-c0ce1", appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c" };
         firebase.initializeApp(firebaseConfig);
@@ -196,8 +206,7 @@
                 await remoteConfig.fetchAndActivate();
                 API_URL = remoteConfig.getString('nyelle_server_url');
                 if (currentUserCode && currentUserName && currentUserPfp) {
-                    document.getElementById('login-overlay').style.display = 'none';
-                    startSystem();
+                    document.getElementById('login-overlay').style.display = 'none'; startSystem();
                 }
             } catch (err) { console.error(err); }
         }
@@ -212,13 +221,11 @@
                 if (data.success) {
                     currentUserCode = data.user_id; currentUserName = data.user.name;
                     localStorage.setItem('nyelle_user_code', currentUserCode); localStorage.setItem('nyelle_user_name', currentUserName);
-                    
                     try {
                         const pfpRes = await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
                         const pfpData = await pfpRes.json();
                         if (pfpData.pfp !== "👤") { currentUserPfp = pfpData.pfp; localStorage.setItem('nyelle_user_pfp', currentUserPfp); }
                     } catch(e) {}
-
                     document.getElementById('login-overlay').style.display = 'none'; document.getElementById('welcome-name').textContent = currentUserName;
                     if(!currentUserPfp || currentUserPfp === '👤') document.getElementById('profile-overlay').style.display = 'flex';
                     else startSystem();
@@ -233,13 +240,30 @@
             reader.readAsDataURL(e.target.files[0]);
         };
 
+        // --- MENUS & ADMIN ---
         function openMyProfileMenu(e) { e.stopPropagation(); const menu = document.getElementById('my-profile-menu'); menu.style.display = 'flex'; menu.style.top = `${e.clientY + 20}px`; menu.style.left = `${isMobile() ? 20 : e.clientX}px`; }
         function openProfileSetup() { document.getElementById('profile-overlay').style.display = 'flex'; document.getElementById('cancel-setup-btn').style.display = 'block'; }
         document.getElementById('cancel-setup-btn').onclick = () => { document.getElementById('profile-overlay').style.display = 'none'; }
+        
+        function openAdminPanel() { document.getElementById('admin-panel-overlay').style.display = 'flex'; document.getElementById('my-profile-menu').style.display = 'none';}
+        
+        async function createGroupChat() {
+            const name = document.getElementById('new-gc-name').value.trim(); if(!name) return;
+            const res = await fetch(`${API_URL}/admin/groups/create`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name: name, admin_code: currentUserCode}) });
+            const data = await res.json();
+            if(data.success) { alert(`Group Created!\nCode: ${data.group_code}`); document.getElementById('new-gc-name').value = ''; }
+        }
+
+        async function manageGroupUser(action) {
+            const gcCode = document.getElementById('manage-gc-code').value.trim().toUpperCase(), userCode = document.getElementById('manage-user-code').value.trim().toUpperCase();
+            if(!gcCode || !userCode) return;
+            const res = await fetch(`${API_URL}/admin/groups/${gcCode}/${action}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({target_code: userCode, admin_code: currentUserCode}) });
+            const data = await res.json();
+            if(data.success) alert(`User successfully ${action}ed!`); else alert("Failed. Check codes and admin rights.");
+        }
 
         document.getElementById('finish-setup-btn').onclick = async () => {
-            localStorage.setItem('nyelle_user_pfp', currentUserPfp);
-            document.getElementById('profile-overlay').style.display = 'none';
+            localStorage.setItem('nyelle_user_pfp', currentUserPfp); document.getElementById('profile-overlay').style.display = 'none';
             if (document.getElementById('my-sidebar-pfp')) document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
             try { await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ pfp: currentUserPfp }) }); } catch(e) {}
             if(!ws || ws.readyState !== 1) startSystem();
@@ -264,11 +288,7 @@
                     if(data.pfp && data.pfp !== '👤' && friendsList[code].pfp !== data.pfp) { friendsList[code].pfp = data.pfp; updated = true; }
                 } catch(e) {}
             }
-            if(updated) {
-                localStorage.setItem('nyelle_friends', JSON.stringify(friendsList));
-                refreshFriendList();
-                if(activeChat !== 'NYELLE_CORE' && friendsList[activeChat]) document.getElementById('mob-pfp').innerHTML = renderPfp(friendsList[activeChat].pfp);
-            }
+            if(updated) { localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshLists(); if(activeChat !== 'NYELLE_CORE' && friendsList[activeChat]) document.getElementById('mob-pfp').innerHTML = renderPfp(friendsList[activeChat].pfp); }
         }
 
         function connectWebSocket() {
@@ -277,30 +297,26 @@
             ws.onmessage = (e) => {
                 const data = JSON.parse(e.data);
                 if (data.type === 'chat') {
-                    const from = data.from_user, isSelf = (from === currentUserCode), targetRoom = isSelf ? activeChat : from;
+                    const from = data.from_user, isSelf = (from === currentUserCode), targetRoom = data.target_room || (isSelf ? activeChat : from);
                     
-                    if (!isSelf && from !== 'NYELLE_CORE' && friendsList[from] && data.pfp && friendsList[from].pfp !== data.pfp) {
-                        friendsList[from].pfp = data.pfp; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshFriendList();
+                    if (!isSelf && from !== 'NYELLE_CORE' && !data.target_room && friendsList[from] && data.pfp && friendsList[from].pfp !== data.pfp) {
+                        friendsList[from].pfp = data.pfp; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshLists();
                         if (activeChat === from) document.getElementById('mob-pfp').innerHTML = renderPfp(data.pfp);
                     }
 
                     if (isSelf) {
                         const tick = document.getElementById(`r-${data.msg_id}`);
                         if (tick) tick.innerHTML = data.delivered ? '✓✓' : '✓';
-                        
-                        // UPDATE CACHE SO TICKS PERSIST WHEN TAB SWITCHING
                         const msgObj = chatHistories[targetRoom]?.find(m => m.id === data.msg_id);
                         if (msgObj) msgObj.delivered = data.delivered;
                         return; 
                     }
-                    
                     removeTyping();
                     if (!chatHistories[targetRoom]) chatHistories[targetRoom] = [];
-                    // New messages received are marked unread until viewed
-                    chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false });
+                    chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false, pfp: data.pfp, senderName: data.sender_name });
                     
                     if (activeChat === targetRoom) {
-                        addMessageToUI(data.text, false, data.msg_id, targetRoom, false, false);
+                        addMessageToUI(data.text, false, data.msg_id, targetRoom, false, false, data.sender_name, data.pfp);
                         if (from !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "read", target_user: from }));
                     } else {
                         const f = document.getElementById(`friend-${targetRoom}`); if(f) f.style.boxShadow = "inset 4px 0px 0px var(--accent-highlight)";
@@ -308,23 +324,17 @@
                 } else if (data.type === 'typing' && activeChat === data.from_user) {
                     showTyping(data.from_user); clearTimeout(window.tTimer); window.tTimer = setTimeout(removeTyping, 3000);
                 } else if (data.type === 'read_receipt') {
-                    // 1. UPDATE CACHE SO READ STATUS PERSISTS
-                    if (chatHistories[data.from_user]) {
-                        chatHistories[data.from_user].forEach(m => { if(m.isSelf) m.read = true; });
-                    }
-                    // 2. UPDATE LIVE UI IF ACTIVE
-                    if (activeChat === data.from_user) {
-                        document.querySelectorAll('.read-receipt').forEach(el => { el.innerHTML = '✓✓'; el.classList.add('read'); });
-                    }
+                    if (chatHistories[data.from_user]) chatHistories[data.from_user].forEach(m => { if(m.isSelf) m.read = true; });
+                    if (activeChat === data.from_user) document.querySelectorAll('.read-receipt').forEach(el => { el.innerHTML = '✓✓'; el.classList.add('read'); });
                 } else if (data.type === 'reaction') applyReactionToUI(data.msg_id, data.emoji);
             };
             ws.onclose = () => setTimeout(connectWebSocket, 3000);
         }
 
-        // Updated to process read/delivered state correctly
-        function addMessageToUI(text, isSelf, msgId, chatRoom, isRead = false, isDelivered = false) {
+        function addMessageToUI(text, isSelf, msgId, chatRoom, isRead = false, isDelivered = false, senderName = null, overridePfp = null) {
             const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${isSelf ? 'msg-user' : 'msg-nyelle'}`;
-            const pfp = isSelf ? renderPfp(currentUserPfp) : (chatRoom === 'NYELLE_CORE' ? 'N' : renderPfp(friendsList[chatRoom]?.pfp));
+            const isGroup = !!groupsList[chatRoom];
+            const pfpHtml = isSelf ? renderPfp(currentUserPfp) : (overridePfp ? renderPfp(overridePfp) : (chatRoom === 'NYELLE_CORE' ? 'N' : renderPfp(friendsList[chatRoom]?.pfp || '🌐')));
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
             let receipt = '';
@@ -334,7 +344,15 @@
                 else receipt = `<span class="read-receipt" id="r-${msgId}">✓</span>`;
             }
 
-            wrap.innerHTML = `<div class="bubble-pfp">${pfp}</div><div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${msgId}"><p>${text}</p>${receipt}</div><div class="dots-trigger" onclick="openMsgMenu(event, '${msgId}')">⋮</div>`;
+            let nameLabel = '';
+            if (!isSelf && isGroup && senderName) nameLabel = `<div class="sender-name-label">${senderName}</div>`;
+
+            wrap.innerHTML = `<div class="bubble-pfp">${pfpHtml}</div>
+                <div style="display:flex; flex-direction:column; max-width:100%;">
+                    ${nameLabel}
+                    <div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${msgId}"><p>${text}</p>${receipt}</div>
+                </div>
+                <div class="dots-trigger" onclick="openMsgMenu(event, '${msgId}')">⋮</div>`;
             document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
         }
 
@@ -342,7 +360,6 @@
 
         function openMsgMenu(e, id) { e.stopPropagation(); activeMenuMsgId = id; const menu = document.getElementById('msg-context-menu'), bubble = document.getElementById(`msg-${id}`); if(!bubble) return; document.getElementById('msg-time-info').textContent = `Sent at ${bubble.dataset.time}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${isMobile() ? e.clientX - 100 : e.clientX}px`; }
         function openFriendMenu(e, code) { e.stopPropagation(); activeMenuFriendCode = code; const menu = document.getElementById('friend-context-menu'); document.getElementById('friend-status-info').textContent = `Code: ${code}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${e.clientX}px`; }
-        
         window.onclick = () => { document.getElementById('msg-context-menu').style.display = 'none'; document.getElementById('friend-context-menu').style.display = 'none'; document.getElementById('my-profile-menu').style.display = 'none'; };
 
         function addReaction(emoji) {
@@ -351,64 +368,70 @@
         }
         function applyReactionToUI(id, emoji) { const b = document.getElementById(`msg-${id}`); if (!b) return; let badge = b.querySelector('.react-badge'); if(!badge) { badge = document.createElement('div'); badge.className = 'react-badge'; b.appendChild(badge); } badge.textContent = emoji; }
 
-        function deleteMessage() { if (activeMenuMsgId) document.getElementById(`msg-${activeMenuMsgId}`).parentElement.remove(); }
-        function unfriendUser() { if (activeMenuFriendCode && confirm(`Unfriend ${friendsList[activeMenuFriendCode].name}?`)) { delete friendsList[activeMenuFriendCode]; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshFriendList(); switchChat('NYELLE_CORE'); } }
+        function deleteMessage() { if (activeMenuMsgId) document.getElementById(`msg-${activeMenuMsgId}`).closest('.msg-wrapper').remove(); }
+        function unfriendUser() { 
+            if (!activeMenuFriendCode) return; 
+            if (confirm(`Remove ${activeMenuFriendCode}?`)) { 
+                if(friendsList[activeMenuFriendCode]) { delete friendsList[activeMenuFriendCode]; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); }
+                else if(groupsList[activeMenuFriendCode]) { delete groupsList[activeMenuFriendCode]; localStorage.setItem('nyelle_groups', JSON.stringify(groupsList)); }
+                refreshLists(); switchChat('NYELLE_CORE'); 
+            } 
+        }
 
         function switchChat(code) {
             activeChat = code; document.querySelectorAll('.friend-item').forEach(i => { i.classList.remove('active'); i.style.boxShadow = "none"; });
             const item = document.getElementById(`friend-${code}`); if(item) item.classList.add('active'); 
             document.getElementById('chat-content').innerHTML = '';
-            document.getElementById('mob-name').textContent = code === 'NYELLE_CORE' ? 'Nyelle' : friendsList[code].name;
-            document.getElementById('mob-pfp').innerHTML = code === 'NYELLE_CORE' ? 'N' : renderPfp(friendsList[code].pfp);
+            
+            let name, pfp;
+            if(code === 'NYELLE_CORE') { name = 'Nyelle'; pfp = 'N'; }
+            else if(groupsList[code]) { name = groupsList[code].name; pfp = '🌐'; }
+            else { name = friendsList[code].name; pfp = renderPfp(friendsList[code].pfp); }
+
+            document.getElementById('mob-name').textContent = name;
+            document.getElementById('mob-pfp').innerHTML = pfp;
             
             if (!chatHistories[code] || chatHistories[code].length === 0) {
-                loadChatHistory(code, code === 'NYELLE_CORE' ? currentUserCode : `DM_${[currentUserCode, code].sort().join('_')}`);
+                const isGroup = !!groupsList[code];
+                loadChatHistory(code, code === 'NYELLE_CORE' ? currentUserCode : (isGroup ? code : `DM_${[currentUserCode, code].sort().join('_')}`));
             } else {
-                // Pass the cached read/delivery status so UI renders them perfectly
-                chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code, m.read, m.delivered));
+                chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code, m.read, m.delivered, m.senderName, m.pfp));
             }
 
-            // CRITICAL FIX: Tell the backend we opened this user's tab so they get the blue ticks!
-            if (code !== 'NYELLE_CORE' && ws && ws.readyState === 1) {
-                ws.send(JSON.stringify({ type: "read", target_user: code }));
-            }
+            if (code !== 'NYELLE_CORE' && ws && ws.readyState === 1 && !groupsList[code]) ws.send(JSON.stringify({ type: "read", target_user: code }));
         }
 
         async function loadChatHistory(localKey, remoteId) {
             try {
                 const res = await fetch(`${API_URL}/history/${remoteId}`, { headers: {'ngrok-skip-browser-warning': 'true'} });
                 const data = await res.json();
-                chatHistories[localKey] = (data.history || []).map(m => ({ 
-                    id: "hist_"+Math.random(), 
-                    text: m.content, 
-                    isSelf: m.role === 'User' || m.role === currentUserCode,
-                    read: true,      // Assume old db history is fully read
-                    delivered: true  // Assume old db history is fully delivered
-                }));
+                chatHistories[localKey] = (data.history || []).map(m => ({ id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode, read: true, delivered: true }));
                 chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey, m.read, m.delivered));
             } catch(e) {}
         }
 
-        function refreshFriendList() {
-            const list = document.getElementById('dm-list'); list.innerHTML = '';
+        function refreshLists() {
+            const dmList = document.getElementById('dm-list'); dmList.innerHTML = '';
             Object.entries(friendsList).forEach(([code, info]) => {
-                list.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">${renderPfp(info.pfp)}</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div><div class="status-dot online"></div></div>`;
+                dmList.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">${renderPfp(info.pfp)}</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div><div class="status-dot online"></div></div>`;
+            });
+            const gcList = document.getElementById('gc-list'); gcList.innerHTML = '';
+            Object.entries(groupsList).forEach(([code, info]) => {
+                gcList.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">🌐</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div></div>`;
             });
         }
 
+        // Resolves Code Type when Adding
         document.getElementById('start-dm-btn').onclick = async () => {
             const code = document.getElementById('friend-code-input').value.trim().toUpperCase(), name = document.getElementById('friend-name-input').value.trim();
-            if (code && name) { 
-                let friendPfp = '🤖';
+            if (code) { 
                 try {
-                    const res = await fetch(`${API_URL}/api/user/${code}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                    const res = await fetch(`${API_URL}/api/resolve/${code}`, {headers:{'ngrok-skip-browser-warning':'true'}});
                     const data = await res.json();
-                    if(data.pfp && data.pfp !== '👤') friendPfp = data.pfp;
-                } catch(e) {}
-                
-                friendsList[code] = { name, pfp: friendPfp }; 
-                localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); 
-                refreshFriendList(); document.getElementById('add-friend-overlay').style.display = 'none'; switchChat(code); 
+                    if(data.type === "group") { groupsList[code] = { name: data.name, pfp: '🌐' }; localStorage.setItem('nyelle_groups', JSON.stringify(groupsList)); }
+                    else { friendsList[code] = { name: name || 'User', pfp: data.pfp }; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); }
+                } catch(e) { friendsList[code] = { name: name || code, pfp: '🤖' }; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); }
+                refreshLists(); document.getElementById('add-friend-overlay').style.display = 'none'; switchChat(code); 
             }
         };
 
@@ -416,20 +439,17 @@
         document.getElementById('send-btn').onclick = () => {
             const text = inputField.value.trim(); if (!text || !ws || ws.readyState !== 1) return;
             const tempId = "msg_" + (Date.now() + Math.random().toString(36).substr(2, 5));
-            
             if (!chatHistories[activeChat]) chatHistories[activeChat] = [];
-            // Init fresh messages with false status
             chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true, delivered: false, read: false });
-            
             addMessageToUI(text, true, tempId, activeChat, false, false);
-            ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, text: text, msg_id: tempId, pfp: currentUserPfp }));
+            ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, text: text, msg_id: tempId, pfp: currentUserPfp, sender_name: currentUserName }));
             inputField.value = ''; if (activeChat === 'NYELLE_CORE') showTyping('NYELLE_CORE');
         };
         inputField.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
 
-        function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshFriendList(); switchChat('NYELLE_CORE'); connectWebSocket(); syncFriendProfiles(); }
+        function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshLists(); switchChat('NYELLE_CORE'); connectWebSocket(); syncFriendProfiles(); }
         function isMobile() { return window.innerWidth < 800; }
-        function showTyping(code) { removeTyping(); const wrap = document.createElement('div'); wrap.className = 'msg-wrapper msg-nyelle'; wrap.id = 'typing-indicator'; wrap.innerHTML = `<div class="bubble-pfp">${code==='NYELLE_CORE'?'N':renderPfp(friendsList[code]?.pfp)}</div><div class="toon-bubble nyelle-msg"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`; document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight; }
+        function showTyping(code) { removeTyping(); const wrap = document.createElement('div'); wrap.className = 'msg-wrapper msg-nyelle'; wrap.id = 'typing-indicator'; wrap.innerHTML = `<div class="bubble-pfp">${code==='NYELLE_CORE'?'N':renderPfp(friendsList[code]?.pfp || '🌐')}</div><div class="toon-bubble nyelle-msg"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`; document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight; }
         function removeTyping() { const t = document.getElementById('typing-indicator'); if (t) t.remove(); }
     </script>
 </body>
