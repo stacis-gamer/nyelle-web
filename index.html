@@ -42,7 +42,6 @@
         .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; }
         @media (min-width: 800px) { .sidebar { display: flex; } }
         
-        /* NEW: Clickable Header */
         .sidebar-header { padding: 20px; border-bottom: 2px solid var(--bg-darker); display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
         .sidebar-header:hover { background: var(--bg-panel); }
 
@@ -203,87 +202,80 @@
 
         document.getElementById('login-btn').onclick = async () => {
             const code = document.getElementById('access-code').value.trim().toUpperCase();
-            const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ code }) });
-            const data = await res.json();
-            if (data.success) {
-                currentUserCode = data.user_id; currentUserName = data.user.name;
-                localStorage.setItem('nyelle_user_code', currentUserCode); localStorage.setItem('nyelle_user_name', currentUserName);
-                
-                // Fetch existing PFP from server if available
-                try {
-                    const pfpRes = await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                    const pfpData = await pfpRes.json();
-                    currentUserPfp = pfpData.pfp;
-                    localStorage.setItem('nyelle_user_pfp', currentUserPfp);
-                } catch(e) {}
+            if (!code || !API_URL) return;
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ code }) });
+                const data = await res.json();
+                if (data.success) {
+                    currentUserCode = data.user_id; currentUserName = data.user.name;
+                    localStorage.setItem('nyelle_user_code', currentUserCode); localStorage.setItem('nyelle_user_name', currentUserName);
+                    
+                    try {
+                        const pfpRes = await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                        const pfpData = await pfpRes.json();
+                        if (pfpData.pfp !== "👤") {
+                            currentUserPfp = pfpData.pfp;
+                            localStorage.setItem('nyelle_user_pfp', currentUserPfp);
+                        }
+                    } catch(e) {}
 
-                document.getElementById('login-overlay').style.display = 'none'; document.getElementById('welcome-name').textContent = currentUserName;
-                
-                if(!currentUserPfp || currentUserPfp === '👤') {
-                    document.getElementById('profile-overlay').style.display = 'flex';
-                } else {
-                    startSystem();
+                    document.getElementById('login-overlay').style.display = 'none'; document.getElementById('welcome-name').textContent = currentUserName;
+                    if(!currentUserPfp || currentUserPfp === '👤') document.getElementById('profile-overlay').style.display = 'flex';
+                    else startSystem();
                 }
-            }
+            } catch(e) { alert("Server error."); }
         };
 
         function selectAvatar(el, pfp) { currentUserPfp = pfp; document.querySelectorAll('.avatar-option, #custom-preview').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); }
         document.getElementById('custom-pfp-upload').onchange = (e) => {
             const reader = new FileReader();
-            reader.onload = (ev) => { currentUserPfp = ev.target.result; const p = document.getElementById('custom-preview'); p.src = currentUserPfp; p.style.display = 'block'; p.classList.add('selected'); };
+            reader.onload = (ev) => { currentUserPfp = ev.target.result; const p = document.getElementById('custom-preview'); p.src = currentUserPfp; p.style.display = 'block'; p.classList.add('selected'); document.querySelectorAll('.avatar-option').forEach(i => i.classList.remove('selected'));};
             reader.readAsDataURL(e.target.files[0]);
         };
 
-        // NEW: Profile Management
-        function openMyProfileMenu(e) {
-            e.stopPropagation();
-            const menu = document.getElementById('my-profile-menu');
-            menu.style.display = 'flex';
-            menu.style.top = `${e.clientY + 20}px`;
-            menu.style.left = `${isMobile() ? 20 : e.clientX}px`;
-        }
-
-        function openProfileSetup() {
-            document.getElementById('profile-overlay').style.display = 'flex';
-            document.getElementById('cancel-setup-btn').style.display = 'block';
-        }
-        
-        document.getElementById('cancel-setup-btn').onclick = () => {
-            document.getElementById('profile-overlay').style.display = 'none';
-        }
+        // Profile Menu Logic
+        function openMyProfileMenu(e) { e.stopPropagation(); const menu = document.getElementById('my-profile-menu'); menu.style.display = 'flex'; menu.style.top = `${e.clientY + 20}px`; menu.style.left = `${isMobile() ? 20 : e.clientX}px`; }
+        function openProfileSetup() { document.getElementById('profile-overlay').style.display = 'flex'; document.getElementById('cancel-setup-btn').style.display = 'block'; }
+        document.getElementById('cancel-setup-btn').onclick = () => { document.getElementById('profile-overlay').style.display = 'none'; }
 
         document.getElementById('finish-setup-btn').onclick = async () => {
             localStorage.setItem('nyelle_user_pfp', currentUserPfp);
             document.getElementById('profile-overlay').style.display = 'none';
-            document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
+            if (document.getElementById('my-sidebar-pfp')) document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
             
-            // Sync to server
-            try {
-                await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify({ pfp: currentUserPfp })
-                });
-            } catch(e) {}
-            
+            try { await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ pfp: currentUserPfp }) }); } catch(e) {}
             if(!ws || ws.readyState !== 1) startSystem();
         };
 
-        function logOut() {
-            localStorage.clear();
-            location.reload();
-        }
+        function logOut() { localStorage.clear(); location.reload(); }
 
         async function wipeMemory() {
-            if(confirm("Are you sure you want to wipe Nyelle's memory of you? This cannot be undone.")) {
+            if(confirm("Wipe Nyelle's memory of you? This cannot be undone.")) {
                 try {
-                    await fetch(`${API_URL}/api/memory/${currentUserCode}`, {
-                        method: 'DELETE', headers: {'ngrok-skip-browser-warning': 'true'}
-                    });
-                    chatHistories['NYELLE_CORE'] = [];
-                    switchChat('NYELLE_CORE');
-                    alert("Memory wiped.");
+                    await fetch(`${API_URL}/api/memory/${currentUserCode}`, { method: 'DELETE', headers: {'ngrok-skip-browser-warning': 'true'} });
+                    chatHistories['NYELLE_CORE'] = []; switchChat('NYELLE_CORE'); alert("Memory wiped.");
                 } catch(e) { alert("Failed to connect to server."); }
+            }
+        }
+
+        // --- BACKGROUND PFP SYNC ---
+        async function syncFriendProfiles() {
+            let updated = false;
+            for (let code in friendsList) {
+                try {
+                    const res = await fetch(`${API_URL}/api/user/${code}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                    const data = await res.json();
+                    if(data.pfp && data.pfp !== '👤' && friendsList[code].pfp !== data.pfp) {
+                        friendsList[code].pfp = data.pfp; updated = true;
+                    }
+                } catch(e) {}
+            }
+            if(updated) {
+                localStorage.setItem('nyelle_friends', JSON.stringify(friendsList));
+                refreshFriendList();
+                if(activeChat !== 'NYELLE_CORE' && friendsList[activeChat]) {
+                    document.getElementById('mob-pfp').innerHTML = renderPfp(friendsList[activeChat].pfp);
+                }
             }
         }
 
@@ -294,6 +286,17 @@
                 const data = JSON.parse(e.data);
                 if (data.type === 'chat') {
                     const from = data.from_user, isSelf = (from === currentUserCode), targetRoom = isSelf ? activeChat : from;
+                    
+                    // REAL-TIME PFP SYNC
+                    if (!isSelf && from !== 'NYELLE_CORE' && friendsList[from] && data.pfp) {
+                        if (friendsList[from].pfp !== data.pfp) {
+                            friendsList[from].pfp = data.pfp;
+                            localStorage.setItem('nyelle_friends', JSON.stringify(friendsList));
+                            refreshFriendList();
+                            if (activeChat === from) document.getElementById('mob-pfp').innerHTML = renderPfp(data.pfp);
+                        }
+                    }
+
                     if (isSelf) {
                         const tick = document.getElementById(`r-${data.msg_id}`);
                         if (tick) tick.innerHTML = data.delivered ? '✓✓' : '✓';
@@ -371,11 +374,16 @@
         function refreshFriendList() {
             const list = document.getElementById('dm-list'); list.innerHTML = '';
             Object.entries(friendsList).forEach(([code, info]) => {
-                list.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">${renderPfp(info.pfp)}</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div><div class="status-dot online"></div></div>`;
+                list.innerHTML += `
+                    <div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')">
+                        <div class="avatar-mini">${renderPfp(info.pfp)}</div>
+                        <span style="font-weight:bold; flex:1;">${info.name}</span>
+                        <div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div>
+                        <div class="status-dot online"></div>
+                    </div>`;
             });
         }
 
-        // NEW: Fetch remote PFP when adding friends
         document.getElementById('start-dm-btn').onclick = async () => {
             const code = document.getElementById('friend-code-input').value.trim().toUpperCase(), name = document.getElementById('friend-name-input').value.trim();
             if (code && name) { 
@@ -383,7 +391,7 @@
                 try {
                     const res = await fetch(`${API_URL}/api/user/${code}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
                     const data = await res.json();
-                    if(data.pfp) friendPfp = data.pfp;
+                    if(data.pfp && data.pfp !== '👤') friendPfp = data.pfp;
                 } catch(e) {}
                 
                 friendsList[code] = { name, pfp: friendPfp }; 
@@ -399,12 +407,12 @@
             if (!chatHistories[activeChat]) chatHistories[activeChat] = [];
             chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true });
             addMessageToUI(text, true, tempId, activeChat);
-            ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, text: text, msg_id: tempId }));
+            ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, text: text, msg_id: tempId, pfp: currentUserPfp }));
             inputField.value = ''; if (activeChat === 'NYELLE_CORE') showTyping('NYELLE_CORE');
         };
         inputField.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
 
-        function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshFriendList(); switchChat('NYELLE_CORE'); connectWebSocket(); }
+        function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshFriendList(); switchChat('NYELLE_CORE'); connectWebSocket(); syncFriendProfiles(); }
         function showTyping(code) { removeTyping(); const wrap = document.createElement('div'); wrap.className = 'msg-wrapper msg-nyelle'; wrap.id = 'typing-indicator'; wrap.innerHTML = `<div class="bubble-pfp">${code==='NYELLE_CORE'?'N':renderPfp(friendsList[code]?.pfp)}</div><div class="toon-bubble nyelle-msg"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`; document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight; }
         function removeTyping() { const t = document.getElementById('typing-indicator'); if (t) t.remove(); }
     </script>
