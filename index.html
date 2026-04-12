@@ -41,7 +41,11 @@
         .app-layout { display: flex; width: 100%; height: 100%; }
         .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; }
         @media (min-width: 800px) { .sidebar { display: flex; } }
-        .sidebar-header { padding: 20px; border-bottom: 2px solid var(--bg-darker); display: flex; align-items: center; gap: 15px; }
+        
+        /* NEW: Clickable Header */
+        .sidebar-header { padding: 20px; border-bottom: 2px solid var(--bg-darker); display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
+        .sidebar-header:hover { background: var(--bg-panel); }
+
         .avatar-ring { width: 45px; height: 45px; background: var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 3px solid var(--text-main); overflow: hidden; flex-shrink: 0; box-shadow: 0px 4px 0px var(--accent-shadow); font-weight: bold; font-size: 18px; }
         .avatar-ring img { width: 100%; height: 100%; object-fit: cover; }
         .sidebar-content { flex: 1; overflow-y: auto; padding: 15px 10px; }
@@ -51,14 +55,14 @@
         .friend-item.active { background: var(--accent); color: white; }
         .friend-dots { opacity: 0; padding: 5px; color: var(--text-muted); font-size: 18px; transition: 0.2s; }
         .friend-item:hover .friend-dots { opacity: 1; }
-        .avatar-mini { width: 35px; height: 35px; background: var(--bg-darker); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #111; overflow: hidden; flex-shrink: 0; }
+        .avatar-mini { width: 35px; height: 35px; background: var(--bg-darker); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #111; overflow: hidden; flex-shrink: 0; font-size: 18px;}
         .avatar-mini img { width: 100%; height: 100%; object-fit: cover; }
         .status-dot { width: 10px; height: 10px; background: var(--text-muted); border-radius: 50%; border: 2px solid var(--bg-dark); }
         .status-dot.online { background: var(--success); }
 
         /* --- CHAT --- */
         .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--bg-panel); background-image: radial-gradient(var(--bg-darker) 1px, transparent 1px); background-size: 20px 20px; position: relative; }
-        .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; gap: 15px; z-index: 10; }
+        .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; gap: 15px; z-index: 10; cursor: pointer;}
         @media (min-width: 800px) { .mobile-header { display: none; } }
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; align-items: center; }
         .chat-content { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 28px; }
@@ -108,6 +112,7 @@
             <label for="custom-pfp-upload" style="cursor:pointer; color:var(--text-muted); display:block; margin-bottom:20px;">📷 Upload Picture</label>
             <input type="file" id="custom-pfp-upload" accept="image/*" style="display: none;">
             <button id="finish-setup-btn" class="toon-btn" style="width: 100%;">ENTER SYSTEM</button>
+            <button id="cancel-setup-btn" class="toon-btn" style="width: 100%; background: #313338; border-color: #111; box-shadow: 0 4px 0 #111; margin-top: 10px; display: none;">CANCEL</button>
         </div>
     </div>
 
@@ -133,9 +138,16 @@
         <div class="menu-item danger" onclick="unfriendUser()">🗑️ Unfriend & Delete Chat</div>
     </div>
 
+    <div id="my-profile-menu" class="context-menu">
+        <div class="menu-info">Account Settings</div>
+        <div class="menu-item" onclick="openProfileSetup()">🖼️ Change Avatar</div>
+        <div class="menu-item danger" onclick="wipeMemory()">🧹 Clear AI Memory</div>
+        <div class="menu-item danger" onclick="logOut()">🚪 Log Out</div>
+    </div>
+
     <div class="app-layout">
         <aside class="sidebar">
-            <div class="sidebar-header">
+            <div class="sidebar-header" onclick="openMyProfileMenu(event)">
                 <div class="avatar-ring" id="my-sidebar-pfp">N</div>
                 <div><h2 style="font-size: 16px;" id="my-sidebar-name">User</h2><p style="color: var(--success); font-size: 12px;">● Online</p></div>
             </div>
@@ -152,7 +164,7 @@
         </aside>
 
         <main class="main-chat">
-            <header class="mobile-header">
+            <header class="mobile-header" onclick="openMyProfileMenu(event)">
                 <div class="avatar-ring" style="width: 35px; height: 35px;" id="mob-pfp">N</div>
                 <h2 style="font-size: 16px; margin-left:10px;" id="mob-name">Nyelle</h2>
             </header>
@@ -196,8 +208,22 @@
             if (data.success) {
                 currentUserCode = data.user_id; currentUserName = data.user.name;
                 localStorage.setItem('nyelle_user_code', currentUserCode); localStorage.setItem('nyelle_user_name', currentUserName);
+                
+                // Fetch existing PFP from server if available
+                try {
+                    const pfpRes = await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                    const pfpData = await pfpRes.json();
+                    currentUserPfp = pfpData.pfp;
+                    localStorage.setItem('nyelle_user_pfp', currentUserPfp);
+                } catch(e) {}
+
                 document.getElementById('login-overlay').style.display = 'none'; document.getElementById('welcome-name').textContent = currentUserName;
-                document.getElementById('profile-overlay').style.display = 'flex';
+                
+                if(!currentUserPfp || currentUserPfp === '👤') {
+                    document.getElementById('profile-overlay').style.display = 'flex';
+                } else {
+                    startSystem();
+                }
             }
         };
 
@@ -207,6 +233,59 @@
             reader.onload = (ev) => { currentUserPfp = ev.target.result; const p = document.getElementById('custom-preview'); p.src = currentUserPfp; p.style.display = 'block'; p.classList.add('selected'); };
             reader.readAsDataURL(e.target.files[0]);
         };
+
+        // NEW: Profile Management
+        function openMyProfileMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('my-profile-menu');
+            menu.style.display = 'flex';
+            menu.style.top = `${e.clientY + 20}px`;
+            menu.style.left = `${isMobile() ? 20 : e.clientX}px`;
+        }
+
+        function openProfileSetup() {
+            document.getElementById('profile-overlay').style.display = 'flex';
+            document.getElementById('cancel-setup-btn').style.display = 'block';
+        }
+        
+        document.getElementById('cancel-setup-btn').onclick = () => {
+            document.getElementById('profile-overlay').style.display = 'none';
+        }
+
+        document.getElementById('finish-setup-btn').onclick = async () => {
+            localStorage.setItem('nyelle_user_pfp', currentUserPfp);
+            document.getElementById('profile-overlay').style.display = 'none';
+            document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
+            
+            // Sync to server
+            try {
+                await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ pfp: currentUserPfp })
+                });
+            } catch(e) {}
+            
+            if(!ws || ws.readyState !== 1) startSystem();
+        };
+
+        function logOut() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        async function wipeMemory() {
+            if(confirm("Are you sure you want to wipe Nyelle's memory of you? This cannot be undone.")) {
+                try {
+                    await fetch(`${API_URL}/api/memory/${currentUserCode}`, {
+                        method: 'DELETE', headers: {'ngrok-skip-browser-warning': 'true'}
+                    });
+                    chatHistories['NYELLE_CORE'] = [];
+                    switchChat('NYELLE_CORE');
+                    alert("Memory wiped.");
+                } catch(e) { alert("Failed to connect to server."); }
+            }
+        }
 
         function connectWebSocket() {
             if (!API_URL) return;
@@ -248,9 +327,14 @@
 
         function renderPfp(p) { return (p && p.startsWith('data:image')) ? `<img src="${p}">` : (p || '👤'); }
 
-        function openMsgMenu(e, id) { e.stopPropagation(); activeMenuMsgId = id; const menu = document.getElementById('msg-context-menu'), bubble = document.getElementById(`msg-${id}`); document.getElementById('msg-time-info').textContent = `Sent at ${bubble.dataset.time}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${e.clientX - 100}px`; }
+        function openMsgMenu(e, id) { e.stopPropagation(); activeMenuMsgId = id; const menu = document.getElementById('msg-context-menu'), bubble = document.getElementById(`msg-${id}`); if(!bubble) return; document.getElementById('msg-time-info').textContent = `Sent at ${bubble.dataset.time}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${isMobile() ? e.clientX - 100 : e.clientX}px`; }
         function openFriendMenu(e, code) { e.stopPropagation(); activeMenuFriendCode = code; const menu = document.getElementById('friend-context-menu'); document.getElementById('friend-status-info').textContent = `Code: ${code}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${e.clientX}px`; }
-        window.onclick = () => { document.getElementById('msg-context-menu').style.display = 'none'; document.getElementById('friend-context-menu').style.display = 'none'; };
+        
+        window.onclick = () => { 
+            document.getElementById('msg-context-menu').style.display = 'none'; 
+            document.getElementById('friend-context-menu').style.display = 'none'; 
+            document.getElementById('my-profile-menu').style.display = 'none';
+        };
 
         function addReaction(emoji) {
             if (!activeMenuMsgId) return; applyReactionToUI(activeMenuMsgId, emoji);
@@ -291,6 +375,23 @@
             });
         }
 
+        // NEW: Fetch remote PFP when adding friends
+        document.getElementById('start-dm-btn').onclick = async () => {
+            const code = document.getElementById('friend-code-input').value.trim().toUpperCase(), name = document.getElementById('friend-name-input').value.trim();
+            if (code && name) { 
+                let friendPfp = '🤖';
+                try {
+                    const res = await fetch(`${API_URL}/api/user/${code}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                    const data = await res.json();
+                    if(data.pfp) friendPfp = data.pfp;
+                } catch(e) {}
+                
+                friendsList[code] = { name, pfp: friendPfp }; 
+                localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); 
+                refreshFriendList(); document.getElementById('add-friend-overlay').style.display = 'none'; switchChat(code); 
+            }
+        };
+
         const inputField = document.getElementById('user-input');
         document.getElementById('send-btn').onclick = () => {
             const text = inputField.value.trim(); if (!text || !ws || ws.readyState !== 1) return;
@@ -306,8 +407,6 @@
         function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshFriendList(); switchChat('NYELLE_CORE'); connectWebSocket(); }
         function showTyping(code) { removeTyping(); const wrap = document.createElement('div'); wrap.className = 'msg-wrapper msg-nyelle'; wrap.id = 'typing-indicator'; wrap.innerHTML = `<div class="bubble-pfp">${code==='NYELLE_CORE'?'N':renderPfp(friendsList[code]?.pfp)}</div><div class="toon-bubble nyelle-msg"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`; document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight; }
         function removeTyping() { const t = document.getElementById('typing-indicator'); if (t) t.remove(); }
-        document.getElementById('finish-setup-btn').onclick = () => { localStorage.setItem('nyelle_user_pfp', currentUserPfp); document.getElementById('profile-overlay').style.display = 'none'; startSystem(); };
-        document.getElementById('start-dm-btn').onclick = () => { const code = document.getElementById('friend-code-input').value.trim().toUpperCase(), name = document.getElementById('friend-name-input').value.trim(); if (code && name) { friendsList[code] = { name, pfp: '🤖' }; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshFriendList(); document.getElementById('add-friend-overlay').style.display = 'none'; switchChat(code); } };
     </script>
 </body>
 </html>
