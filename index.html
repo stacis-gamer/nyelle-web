@@ -311,6 +311,8 @@
 
                 if (isReconnecting) {
                     console.log("Recovering missed messages...");
+                    // FORCE CACHE WIPE SO WE FETCH THE TRUTH FROM THE DATABASE
+                    chatHistories = {};
                     switchChat(activeChat); 
                     isReconnecting = false;
                 }
@@ -495,10 +497,11 @@
                 const data = await res.json();
                 chatHistories[localKey] = (data.history || []).map(m => {
                     let sName = null, sPfp = null;
-                    if (groupsList[localKey] && groupMembersCache[localKey] && groupMembersCache[localKey][m.role]) {
+                    if (m.role === 'User' || m.role === currentUserCode) { sName = currentUserName; sPfp = currentUserPfp; }
+                    else if (m.role === 'Nyelle' || m.role === 'NYELLE_CORE') { sName = 'Nyelle'; sPfp = 'N'; }
+                    else if (groupsList[localKey] && groupMembersCache[localKey] && groupMembersCache[localKey][m.role]) {
                         sName = groupMembersCache[localKey][m.role].name; sPfp = groupMembersCache[localKey][m.role].pfp;
-                    } else if (m.role === 'Nyelle') { sName = 'Nyelle'; sPfp = 'N'; } 
-                    else if (friendsList[m.role]) { sName = friendsList[m.role].name; sPfp = friendsList[m.role].pfp; }
+                    } else if (friendsList[m.role]) { sName = friendsList[m.role].name; sPfp = friendsList[m.role].pfp; }
 
                     return { id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode, read: true, delivered: true, readers: [], senderName: sName, pfp: sPfp };
                 });
@@ -520,7 +523,6 @@
                     const res = await fetch(`${API_URL}/api/resolve/${code}`, {headers:{'ngrok-skip-browser-warning':'true'}});
                     const data = await res.json();
                     if(data.type === "group") { 
-                        // Auto-Join the Group on Backend!
                         await fetch(`${API_URL}/api/groups/${code}/join`, {
                             method: 'POST', 
                             headers:{'Content-Type': 'application/json', 'ngrok-skip-browser-warning':'true'},
