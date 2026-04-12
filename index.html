@@ -27,9 +27,7 @@
 
         body { background-color: var(--bg-darker); height: 100vh; display: flex; overflow: hidden; color: var(--text-main); }
 
-        /* =========================================
-           OVERLAYS & MENUS
-           ========================================= */
+        /* --- OVERLAYS & MENUS --- */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 999; }
         .auth-box { background: var(--bg-dark); padding: 35px 25px; border-radius: 20px; border: 2px solid #111; box-shadow: 0px 10px 30px rgba(0,0,0,0.8); text-align: center; width: 90%; max-width: 400px; }
         
@@ -39,70 +37,51 @@
         .menu-item.danger:hover { background: var(--danger); }
         .menu-info { font-size: 10px; color: var(--text-muted); padding: 4px 12px; border-bottom: 1px solid #313338; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* =========================================
-           LAYOUT & SIDEBAR
-           ========================================= */
+        /* --- SIDEBAR --- */
         .app-layout { display: flex; width: 100%; height: 100%; }
-        .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; box-shadow: inset -4px 0px 0px rgba(0,0,0,0.2); }
+        .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; }
         @media (min-width: 800px) { .sidebar { display: flex; } }
-        
         .sidebar-header { padding: 20px; border-bottom: 2px solid var(--bg-darker); display: flex; align-items: center; gap: 15px; }
         .avatar-ring { width: 45px; height: 45px; background: var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 3px solid var(--text-main); overflow: hidden; flex-shrink: 0; box-shadow: 0px 4px 0px var(--accent-shadow); font-weight: bold; font-size: 18px; }
         .avatar-ring img { width: 100%; height: 100%; object-fit: cover; }
-
         .sidebar-content { flex: 1; overflow-y: auto; padding: 15px 10px; }
         .section-title { font-size: 11px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 5px 10px; }
-        
         .friend-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.1s; margin-bottom: 5px; position: relative; }
         .friend-item:hover { background: var(--bg-panel); }
         .friend-item.active { background: var(--accent); color: white; }
         .friend-dots { opacity: 0; padding: 5px; color: var(--text-muted); font-size: 18px; transition: 0.2s; }
         .friend-item:hover .friend-dots { opacity: 1; }
-        
-        .avatar-mini { width: 35px; height: 35px; background: var(--bg-darker); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid #111; overflow: hidden; flex-shrink: 0; }
+        .avatar-mini { width: 35px; height: 35px; background: var(--bg-darker); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #111; overflow: hidden; flex-shrink: 0; }
         .avatar-mini img { width: 100%; height: 100%; object-fit: cover; }
         .status-dot { width: 10px; height: 10px; background: var(--text-muted); border-radius: 50%; border: 2px solid var(--bg-dark); }
         .status-dot.online { background: var(--success); }
 
-        /* =========================================
-           CHAT AREA
-           ========================================= */
+        /* --- CHAT --- */
         .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--bg-panel); background-image: radial-gradient(var(--bg-darker) 1px, transparent 1px); background-size: 20px 20px; position: relative; }
         .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; gap: 15px; z-index: 10; }
         @media (min-width: 800px) { .mobile-header { display: none; } }
-
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; align-items: center; }
         .chat-content { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 28px; }
-
         .msg-wrapper { display: flex; gap: 10px; align-items: flex-end; max-width: 85%; position: relative; }
         .msg-nyelle { align-self: flex-start; }
         .msg-user { align-self: flex-end; flex-direction: row-reverse; }
-
         .bubble-pfp { font-size: 20px; background: var(--bg-darker); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border: 2px solid #111; overflow: hidden; flex-shrink: 0; }
         .bubble-pfp img { width: 100%; height: 100%; object-fit: cover; } 
-
         .toon-bubble { padding: 14px 18px; border-radius: 20px; font-weight: 600; font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative; box-shadow: 0px 6px 0px rgba(0,0,0,0.2); }
         .nyelle-msg { background: var(--bubble-nyelle); border: 2px solid var(--bubble-nyelle-shadow); border-bottom-left-radius: 4px; }
         .user-msg { background: var(--accent); border: 2px solid var(--accent-shadow); border-bottom-right-radius: 4px; }
-
         .dots-trigger { opacity: 0; cursor: pointer; color: var(--text-muted); padding: 0 8px; font-size: 18px; transition: 0.2s; align-self: center; }
         .msg-wrapper:hover .dots-trigger { opacity: 1; }
-
         .read-receipt { font-size: 11px; color: rgba(255,255,255,0.4); position: absolute; bottom: -18px; right: 4px; font-weight: bold; }
         .read-receipt.read { color: #4facfe; }
-
         .react-badge { position: absolute; bottom: -18px; left: 10px; background: var(--bg-darker); border: 1px solid #111; border-radius: 12px; padding: 2px 6px; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 5; color: white; }
 
-        /* =========================================
-           INPUT AREA
-           ========================================= */
+        /* --- INPUT --- */
         .input-wrapper { padding: 15px 20px 25px 20px; background: linear-gradient(0deg, var(--bg-darker) 0%, transparent 100%); display: flex; justify-content: center; }
         .input-container { width: 100%; max-width: 800px; display: flex; gap: 12px; }
         .toon-input { flex: 1; background: var(--bg-darker); border: 3px solid #111; border-radius: 18px; padding: 0 20px; color: white; font-size: 16px; font-weight: bold; outline: none; }
         .toon-btn { background: var(--accent); color: white; border: 2px solid var(--accent-shadow); border-radius: 16px; padding: 10px 25px; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0px 6px 0px var(--accent-shadow); }
-        .toon-btn:active { transform: translateY(4px); box-shadow: 0px 2px 0px var(--accent-shadow); }
-
-        .typing-dots { display: flex; gap: 4px; align-items: center; height: 20px; padding: 0 5px; }
+        .typing-dots { display: flex; gap: 4px; align-items: center; height: 20px; }
         .dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
     </style>
@@ -112,7 +91,6 @@
     <div id="login-overlay" class="overlay">
         <div class="auth-box">
             <h2>System Access</h2>
-            <p>Enter your 10-character code.</p>
             <input type="text" id="access-code" class="toon-input" placeholder="ACCESS CODE" style="margin-bottom: 15px; padding: 15px; text-align: center; width: 100%;">
             <button id="login-btn" class="toon-btn" style="width: 100%;">AUTHENTICATE</button>
             <p id="login-error" style="color: var(--danger); display: none; margin-top: 15px; font-weight: bold;"></p>
@@ -122,14 +100,12 @@
     <div id="profile-overlay" class="overlay" style="display: none;">
         <div class="auth-box">
             <h2>Welcome, <span id="welcome-name" style="color: var(--accent);">User</span>!</h2>
-            <p>Set your look for the network.</p>
-            <div class="avatar-picker">
-                <div class="avatar-option selected" onclick="selectAvatar(this, '😎')">😎</div>
-                <div class="avatar-option" onclick="selectAvatar(this, '👾')">👾</div>
-                <div class="avatar-option" onclick="selectAvatar(this, '🐱')">🐱</div>
-                <img id="custom-preview" class="custom-pfp-preview" style="display:none; width:55px; height:55px; border-radius:50%; object-fit:cover;">
+            <div class="avatar-picker" style="display:flex; justify-content:center; gap:10px; margin:20px 0;">
+                <div class="avatar-option selected" onclick="selectAvatar(this, '😎')" style="cursor:pointer; font-size:30px; border-radius: 50%; padding: 5px;">😎</div>
+                <div class="avatar-option" onclick="selectAvatar(this, '👾')" style="cursor:pointer; font-size:30px; border-radius: 50%; padding: 5px;">👾</div>
+                <img id="custom-preview" style="display:none; width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid var(--accent);">
             </div>
-            <label for="custom-pfp-upload" class="upload-btn">📷 Upload Picture</label>
+            <label for="custom-pfp-upload" style="cursor:pointer; color:var(--text-muted); display:block; margin-bottom:20px;">📷 Upload Picture</label>
             <input type="file" id="custom-pfp-upload" accept="image/*" style="display: none;">
             <button id="finish-setup-btn" class="toon-btn" style="width: 100%;">ENTER SYSTEM</button>
         </div>
@@ -138,7 +114,6 @@
     <div id="add-friend-overlay" class="overlay" style="display: none;">
         <div class="auth-box">
             <h2>Add Friend</h2>
-            <p>Connect via network code.</p>
             <input type="text" id="friend-code-input" class="toon-input" placeholder="10-CHAR CODE" style="margin-bottom: 10px; padding: 12px; text-align: center;">
             <input type="text" id="friend-name-input" class="toon-input" placeholder="NICKNAME" style="margin-bottom: 15px; padding: 12px; text-align: center;">
             <button id="start-dm-btn" class="toon-btn" style="width: 100%;">ADD TO LIST</button>
@@ -150,7 +125,6 @@
         <div class="menu-info" id="msg-time-info">Sent at --:--</div>
         <div class="menu-item" onclick="addReaction('❤️')">❤️ React</div>
         <div class="menu-item" onclick="addReaction('🔥')">🔥 React</div>
-        <div class="menu-item" onclick="addReaction('🐱')">🐱 React</div>
         <div class="menu-item danger" onclick="deleteMessage()">🗑️ Delete locally</div>
     </div>
 
@@ -163,17 +137,13 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="avatar-ring" id="my-sidebar-pfp">N</div>
-                <div>
-                    <h2 style="font-weight: 900; font-size: 16px;" id="my-sidebar-name">User</h2>
-                    <p style="color: var(--success); font-weight: bold; font-size: 12px;">● Online</p>
-                </div>
+                <div><h2 style="font-size: 16px;" id="my-sidebar-name">User</h2><p style="color: var(--success); font-size: 12px;">● Online</p></div>
             </div>
             <div class="sidebar-content">
                 <div class="section-title">AI Core</div>
                 <div class="friend-item active" id="friend-NYELLE_CORE" onclick="switchChat('NYELLE_CORE')">
                     <div class="avatar-mini" style="background: var(--accent); color: white;">N</div>
-                    <span style="font-weight: bold; flex: 1;">Nyelle</span>
-                    <div class="status-dot online"></div>
+                    <span style="font-weight: bold; flex: 1;">Nyelle</span><div class="status-dot online"></div>
                 </div>
                 <div class="section-title" style="margin-top: 20px;">Direct Messages</div>
                 <div id="dm-list"></div>
@@ -186,9 +156,7 @@
                 <div class="avatar-ring" style="width: 35px; height: 35px;" id="mob-pfp">N</div>
                 <h2 style="font-size: 16px; margin-left:10px;" id="mob-name">Nyelle</h2>
             </header>
-            <div class="chat-container" id="chat-box">
-                <div class="chat-content" id="chat-content"></div>
-            </div>
+            <div class="chat-container" id="chat-box"><div class="chat-content" id="chat-content"></div></div>
             <div class="input-wrapper">
                 <div class="input-container">
                     <input type="text" id="user-input" class="toon-input" placeholder="Message..." autocomplete="off">
@@ -202,26 +170,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-remote-config-compat.js"></script>
 
     <script>
-        // ==========================================
-        // STATE & CORE VARIABLES
-        // ==========================================
-        let API_URL = '';
-        let currentUserCode = localStorage.getItem('nyelle_user_code');
-        let currentUserName = localStorage.getItem('nyelle_user_name');
-        let currentUserPfp = localStorage.getItem('nyelle_user_pfp');
-        let ws;
-        let activeChat = 'NYELLE_CORE';
-        let chatHistories = { 'NYELLE_CORE': [] };
-        let friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {};
-        
-        let activeMenuMsgId = null;
-        let activeMenuFriendCode = null;
+        let API_URL = '', currentUserCode = localStorage.getItem('nyelle_user_code'), currentUserName = localStorage.getItem('nyelle_user_name'), currentUserPfp = localStorage.getItem('nyelle_user_pfp'), ws, activeChat = 'NYELLE_CORE', chatHistories = { 'NYELLE_CORE': [] }, friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {}, activeMenuMsgId = null, activeMenuFriendCode = null;
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs",
-            projectId: "zane-c0ce1", 
-            appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs", projectId: "zane-c0ce1", appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c" };
         firebase.initializeApp(firebaseConfig);
         const remoteConfig = firebase.remoteConfig();
         remoteConfig.settings.minimumFetchIntervalMillis = 0;
@@ -238,277 +189,125 @@
         }
         init();
 
-        // --- AUTH ---
         document.getElementById('login-btn').onclick = async () => {
             const code = document.getElementById('access-code').value.trim().toUpperCase();
-            if (!code || !API_URL) return;
-            try {
-                const res = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify({ code })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    currentUserCode = data.user_id; currentUserName = data.user.name;
-                    localStorage.setItem('nyelle_user_code', currentUserCode);
-                    localStorage.setItem('nyelle_user_name', currentUserName);
-                    document.getElementById('login-overlay').style.display = 'none';
-                    document.getElementById('welcome-name').textContent = currentUserName;
-                    document.getElementById('profile-overlay').style.display = 'flex';
-                }
-            } catch(e) { alert("Server error."); }
+            const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ code }) });
+            const data = await res.json();
+            if (data.success) {
+                currentUserCode = data.user_id; currentUserName = data.user.name;
+                localStorage.setItem('nyelle_user_code', currentUserCode); localStorage.setItem('nyelle_user_name', currentUserName);
+                document.getElementById('login-overlay').style.display = 'none'; document.getElementById('welcome-name').textContent = currentUserName;
+                document.getElementById('profile-overlay').style.display = 'flex';
+            }
         };
 
-        function selectAvatar(el, pfp) {
-            currentUserPfp = pfp;
-            document.querySelectorAll('.avatar-option, #custom-preview').forEach(i => i.classList.remove('selected'));
-            el.classList.add('selected');
-        }
-
+        function selectAvatar(el, pfp) { currentUserPfp = pfp; document.querySelectorAll('.avatar-option, #custom-preview').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); }
         document.getElementById('custom-pfp-upload').onchange = (e) => {
             const reader = new FileReader();
-            reader.onload = (ev) => {
-                currentUserPfp = ev.target.result;
-                const p = document.getElementById('custom-preview');
-                p.src = currentUserPfp; p.style.display = 'block'; p.classList.add('selected');
-                document.querySelectorAll('.avatar-option').forEach(i => i.classList.remove('selected'));
-            };
+            reader.onload = (ev) => { currentUserPfp = ev.target.result; const p = document.getElementById('custom-preview'); p.src = currentUserPfp; p.style.display = 'block'; p.classList.add('selected'); };
             reader.readAsDataURL(e.target.files[0]);
         };
 
-        document.getElementById('finish-setup-btn').onclick = () => {
-            localStorage.setItem('nyelle_user_pfp', currentUserPfp);
-            document.getElementById('profile-overlay').style.display = 'none';
-            startSystem();
-        };
-
-        // --- CORE LOGIC ---
         function connectWebSocket() {
             if (!API_URL) return;
-            const wsBase = API_URL.replace(/^http/, 'ws');
-            ws = new WebSocket(`${wsBase}/ws/${currentUserCode}`);
+            ws = new WebSocket(API_URL.replace(/^http/, 'ws') + `/ws/${currentUserCode}`);
             ws.onmessage = (e) => {
                 const data = JSON.parse(e.data);
-                
                 if (data.type === 'chat') {
+                    const from = data.from_user, isSelf = (from === currentUserCode), targetRoom = isSelf ? activeChat : from;
+                    if (isSelf) {
+                        const tick = document.getElementById(`r-${data.msg_id}`);
+                        if (tick) tick.innerHTML = data.delivered ? '✓✓' : '✓';
+                        return; 
+                    }
                     removeTyping();
-                    const from = data.from_user;
-                    const isSelf = (from === currentUserCode);
-                    const targetRoom = isSelf ? activeChat : from;
-                    
                     if (!chatHistories[targetRoom]) chatHistories[targetRoom] = [];
-                    const msgId = data.msg_id || Date.now() + Math.random().toString(36).substr(2, 5);
-                    
-                    chatHistories[targetRoom].push({ id: msgId, text: data.text, isSelf: isSelf });
+                    chatHistories[targetRoom].push({ id: data.msg_id, text: data.text, isSelf: false });
                     if (activeChat === targetRoom) {
-                        addMessageToUI(data.text, isSelf, msgId, targetRoom);
-                        if (!isSelf && from !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "read", target_user: from }));
+                        addMessageToUI(data.text, false, data.msg_id, targetRoom);
+                        if (from !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "read", target_user: from }));
                     } else {
-                        const friendEl = document.getElementById(`friend-${targetRoom}`);
-                        if(friendEl) friendEl.style.boxShadow = "inset 4px 0px 0px var(--accent-highlight)";
+                        const f = document.getElementById(`friend-${targetRoom}`); if(f) f.style.boxShadow = "inset 4px 0px 0px var(--accent-highlight)";
                     }
                 } else if (data.type === 'typing' && activeChat === data.from_user) {
-                    showTyping(data.from_user);
-                    clearTimeout(window.tTimer);
-                    window.tTimer = setTimeout(removeTyping, 3000);
+                    showTyping(data.from_user); clearTimeout(window.tTimer); window.tTimer = setTimeout(removeTyping, 3000);
                 } else if (data.type === 'read_receipt' && activeChat === data.from_user) {
                     document.querySelectorAll('.read-receipt').forEach(el => { el.innerHTML = '✓✓'; el.classList.add('read'); });
-                } else if (data.type === 'reaction') {
-                    applyReactionToUI(data.msg_id, data.emoji);
-                }
+                } else if (data.type === 'reaction') applyReactionToUI(data.msg_id, data.emoji);
             };
             ws.onclose = () => setTimeout(connectWebSocket, 3000);
         }
 
         function addMessageToUI(text, isSelf, msgId, chatRoom) {
-            const wrap = document.createElement('div');
-            wrap.className = `msg-wrapper ${isSelf ? 'msg-user' : 'msg-nyelle'}`;
+            const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${isSelf ? 'msg-user' : 'msg-nyelle'}`;
             const pfp = isSelf ? renderPfp(currentUserPfp) : (chatRoom === 'NYELLE_CORE' ? 'N' : renderPfp(friendsList[chatRoom]?.pfp));
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            // Ensure ID is safe for DOM targeting
-            const uniqueId = msgId;
-            
-            wrap.innerHTML = `
-                <div class="bubble-pfp">${pfp}</div>
-                <div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${uniqueId}">
-                    <p>${text}</p>
-                    ${isSelf ? `<span class="read-receipt" id="r-${uniqueId}">✓</span>` : ''}
-                </div>
-                <div class="dots-trigger" onclick="openMsgMenu(event, '${uniqueId}')">⋮</div>`;
-            
-            document.getElementById('chat-content').appendChild(wrap);
-            document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+            wrap.innerHTML = `<div class="bubble-pfp">${pfp}</div><div class="toon-bubble ${isSelf?'user-msg':'nyelle-msg'}" data-time="${time}" id="msg-${msgId}"><p>${text}</p>${isSelf ? `<span class="read-receipt" id="r-${msgId}">✓</span>` : ''}</div><div class="dots-trigger" onclick="openMsgMenu(event, '${msgId}')">⋮</div>`;
+            document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
         }
 
         function renderPfp(p) { return (p && p.startsWith('data:image')) ? `<img src="${p}">` : (p || '👤'); }
 
-        // --- REACTION & CONTEXT LOGIC ---
-        function openMsgMenu(e, id) {
-            e.stopPropagation();
-            activeMenuMsgId = id;
-            const menu = document.getElementById('msg-context-menu');
-            const bubble = document.getElementById(`msg-${id}`);
-            if(!bubble) return;
-            
-            document.getElementById('msg-time-info').textContent = `Sent at ${bubble.dataset.time}`;
-            menu.style.display = 'flex';
-            menu.style.top = `${e.clientY}px`;
-            menu.style.left = `${isMobile() ? e.clientX - 100 : e.clientX}px`;
-        }
+        function openMsgMenu(e, id) { e.stopPropagation(); activeMenuMsgId = id; const menu = document.getElementById('msg-context-menu'), bubble = document.getElementById(`msg-${id}`); document.getElementById('msg-time-info').textContent = `Sent at ${bubble.dataset.time}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${e.clientX - 100}px`; }
+        function openFriendMenu(e, code) { e.stopPropagation(); activeMenuFriendCode = code; const menu = document.getElementById('friend-context-menu'); document.getElementById('friend-status-info').textContent = `Code: ${code}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${e.clientX}px`; }
+        window.onclick = () => { document.getElementById('msg-context-menu').style.display = 'none'; document.getElementById('friend-context-menu').style.display = 'none'; };
 
         function addReaction(emoji) {
-            if (!activeMenuMsgId) return;
-            applyReactionToUI(activeMenuMsgId, emoji);
-            
-            if (ws && ws.readyState === 1 && activeChat !== 'NYELLE_CORE') {
-                ws.send(JSON.stringify({
-                    type: "reaction",
-                    target_user: activeChat,
-                    msg_id: activeMenuMsgId,
-                    emoji: emoji
-                }));
-            }
+            if (!activeMenuMsgId) return; applyReactionToUI(activeMenuMsgId, emoji);
+            if (ws && ws.readyState === 1 && activeChat !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "reaction", target_user: activeChat, msg_id: activeMenuMsgId, emoji: emoji }));
         }
-
         function applyReactionToUI(id, emoji) {
-            const bubble = document.getElementById(`msg-${id}`);
-            if (!bubble) return;
-            let badge = bubble.querySelector('.react-badge');
-            if(!badge) {
-                badge = document.createElement('div');
-                badge.className = 'react-badge';
-                bubble.appendChild(badge);
-            }
+            const b = document.getElementById(`msg-${id}`); if (!b) return;
+            let badge = b.querySelector('.react-badge'); if(!badge) { badge = document.createElement('div'); badge.className = 'react-badge'; b.appendChild(badge); }
             badge.textContent = emoji;
         }
 
-        function openFriendMenu(e, code) {
-            e.stopPropagation();
-            activeMenuFriendCode = code;
-            const menu = document.getElementById('friend-context-menu');
-            document.getElementById('friend-status-info').textContent = `Code: ${code}`;
-            menu.style.display = 'flex';
-            menu.style.top = `${e.clientY}px`;
-            menu.style.left = `${e.clientX}px`;
-        }
-
-        window.onclick = () => {
-            document.getElementById('msg-context-menu').style.display = 'none';
-            document.getElementById('friend-context-menu').style.display = 'none';
-        };
-
-        function deleteMessage() {
-            if (!activeMenuMsgId) return;
-            const el = document.getElementById(`msg-${activeMenuMsgId}`).parentElement;
-            el.remove();
-        }
-
-        function unfriendUser() {
-            if (!activeMenuFriendCode) return;
-            if (confirm(`Unfriend ${friendsList[activeMenuFriendCode].name}?`)) {
-                delete friendsList[activeMenuFriendCode];
-                localStorage.setItem('nyelle_friends', JSON.stringify(friendsList));
-                refreshFriendList();
-                switchChat('NYELLE_CORE');
-            }
-        }
-
-        // --- HELPERS ---
-        function isMobile() { return window.innerWidth < 800; }
+        function deleteMessage() { if (activeMenuMsgId) document.getElementById(`msg-${activeMenuMsgId}`).parentElement.remove(); }
+        function unfriendUser() { if (activeMenuFriendCode && confirm(`Unfriend ${friendsList[activeMenuFriendCode].name}?`)) { delete friendsList[activeMenuFriendCode]; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshFriendList(); switchChat('NYELLE_CORE'); } }
 
         function switchChat(code) {
-            activeChat = code;
-            document.querySelectorAll('.friend-item').forEach(i => { i.classList.remove('active'); i.style.boxShadow = "none"; });
-            document.getElementById(`friend-${code}`)?.classList.add('active');
+            activeChat = code; document.querySelectorAll('.friend-item').forEach(i => { i.classList.remove('active'); i.style.boxShadow = "none"; });
+            const item = document.getElementById(`friend-${code}`); if(item) item.classList.add('active'); 
             document.getElementById('chat-content').innerHTML = '';
-            const name = (code === 'NYELLE_CORE') ? 'Nyelle' : friendsList[code].name;
-            const pfp = (code === 'NYELLE_CORE') ? 'N' : renderPfp(friendsList[code].pfp);
-            document.getElementById('mob-name').textContent = name;
-            document.getElementById('mob-pfp').innerHTML = pfp;
-
-            if (!chatHistories[code] || chatHistories[code].length === 0) {
-                const targetId = code === 'NYELLE_CORE' ? currentUserCode : `DM_${[currentUserCode, code].sort().join('_')}`;
-                loadChatHistory(code, targetId);
-            } else {
-                chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code));
-            }
+            document.getElementById('mob-name').textContent = code === 'NYELLE_CORE' ? 'Nyelle' : friendsList[code].name;
+            document.getElementById('mob-pfp').innerHTML = code === 'NYELLE_CORE' ? 'N' : renderPfp(friendsList[code].pfp);
+            if (!chatHistories[code] || chatHistories[code].length === 0) loadChatHistory(code, code === 'NYELLE_CORE' ? currentUserCode : `DM_${[currentUserCode, code].sort().join('_')}`);
+            else chatHistories[code].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, code));
         }
 
         async function loadChatHistory(localKey, remoteId) {
             try {
                 const res = await fetch(`${API_URL}/history/${remoteId}`, { headers: {'ngrok-skip-browser-warning': 'true'} });
                 const data = await res.json();
-                chatHistories[localKey] = (data.history || []).map(m => ({ 
-                    id: Date.now() + Math.random().toString(36).substr(2, 5), 
-                    text: m.content, 
-                    isSelf: m.role === 'User' || m.role === currentUserCode 
-                }));
+                chatHistories[localKey] = (data.history || []).map(m => ({ id: "hist_"+Math.random(), text: m.content, isSelf: m.role === 'User' || m.role === currentUserCode }));
                 chatHistories[localKey].forEach(m => addMessageToUI(m.text, m.isSelf, m.id, localKey));
             } catch(e) {}
         }
 
         function refreshFriendList() {
-            const list = document.getElementById('dm-list');
-            list.innerHTML = '';
+            const list = document.getElementById('dm-list'); list.innerHTML = '';
             Object.entries(friendsList).forEach(([code, info]) => {
-                list.innerHTML += `
-                    <div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')">
-                        <div class="avatar-mini">${renderPfp(info.pfp)}</div>
-                        <span style="font-weight:bold; flex:1;">${info.name}</span>
-                        <div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div>
-                        <div class="status-dot online"></div>
-                    </div>`;
+                list.innerHTML += `<div class="friend-item" id="friend-${code}" onclick="switchChat('${code}')"><div class="avatar-mini">${renderPfp(info.pfp)}</div><span style="font-weight:bold; flex:1;">${info.name}</span><div class="friend-dots" onclick="openFriendMenu(event, '${code}')">⋮</div><div class="status-dot online"></div></div>`;
             });
         }
 
-        document.getElementById('start-dm-btn').onclick = () => {
-            const code = document.getElementById('friend-code-input').value.trim().toUpperCase();
-            const name = document.getElementById('friend-name-input').value.trim();
-            if (!code || !name || code.length < 5) return alert("Enter valid Access Code");
-            friendsList[code] = { name, pfp: '🤖' };
-            localStorage.setItem('nyelle_friends', JSON.stringify(friendsList));
-            refreshFriendList();
-            document.getElementById('add-friend-overlay').style.display = 'none';
-            switchChat(code);
-        };
-
-        async function startSystem() {
-            document.getElementById('my-sidebar-name').textContent = currentUserName;
-            document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
-            refreshFriendList();
-            switchChat('NYELLE_CORE');
-            connectWebSocket();
-        }
-
         const inputField = document.getElementById('user-input');
-        inputField.addEventListener('input', () => {
-            if (ws && ws.readyState === 1 && activeChat !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "typing", target_user: activeChat }));
-        });
-
         document.getElementById('send-btn').onclick = () => {
-            const text = inputField.value.trim();
-            if (!text || !ws) return;
-            
-            const msgId = Date.now() + Math.random().toString(36).substr(2, 5);
-            ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, text: text, msg_id: msgId }));
-            inputField.value = '';
-            if (activeChat === 'NYELLE_CORE') showTyping('NYELLE_CORE');
+            const text = inputField.value.trim(); if (!text || !ws || ws.readyState !== 1) return;
+            const tempId = "msg_" + (Date.now() + Math.random().toString(36).substr(2, 5));
+            if (!chatHistories[activeChat]) chatHistories[activeChat] = [];
+            chatHistories[activeChat].push({ id: tempId, text: text, isSelf: true });
+            addMessageToUI(text, true, tempId, activeChat);
+            ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, text: text, msg_id: tempId }));
+            inputField.value = ''; if (activeChat === 'NYELLE_CORE') showTyping('NYELLE_CORE');
         };
         inputField.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
 
-        function showTyping(code) {
-            removeTyping();
-            const wrap = document.createElement('div');
-            wrap.className = 'msg-wrapper msg-nyelle';
-            wrap.id = 'typing-indicator';
-            const pfp = (code === 'NYELLE_CORE') ? 'N' : renderPfp(friendsList[code]?.pfp);
-            wrap.innerHTML = `<div class="bubble-pfp">${pfp}</div><div class="toon-bubble nyelle-msg"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
-            document.getElementById('chat-content').appendChild(wrap);
-            document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
-        }
+        function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshFriendList(); switchChat('NYELLE_CORE'); connectWebSocket(); }
+        function showTyping(code) { removeTyping(); const wrap = document.createElement('div'); wrap.className = 'msg-wrapper msg-nyelle'; wrap.id = 'typing-indicator'; wrap.innerHTML = `<div class="bubble-pfp">${code==='NYELLE_CORE'?'N':renderPfp(friendsList[code]?.pfp)}</div><div class="toon-bubble nyelle-msg"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`; document.getElementById('chat-content').appendChild(wrap); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight; }
         function removeTyping() { const t = document.getElementById('typing-indicator'); if (t) t.remove(); }
+        document.getElementById('finish-setup-btn').onclick = () => { localStorage.setItem('nyelle_user_pfp', currentUserPfp); document.getElementById('profile-overlay').style.display = 'none'; startSystem(); };
+        document.getElementById('start-dm-btn').onclick = () => { const code = document.getElementById('friend-code-input').value.trim().toUpperCase(), name = document.getElementById('friend-name-input').value.trim(); if (code && name) { friendsList[code] = { name, pfp: '🤖' }; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshFriendList(); document.getElementById('add-friend-overlay').style.display = 'none'; switchChat(code); } };
     </script>
 </body>
 </html>
