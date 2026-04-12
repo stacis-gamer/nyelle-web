@@ -112,6 +112,11 @@
         const remoteConfig = firebase.remoteConfig();
         remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
+        // HELPER: Safely clean URL to prevent trailing slash double-bugs
+        function getBaseUrl() {
+            return API_URL.replace(/\/+$/, '');
+        }
+
         async function init() {
             if(adminCode) document.getElementById('admin-code-input').value = adminCode;
 
@@ -122,7 +127,7 @@
                 if (!API_URL) throw new Error("No URL found");
 
                 const statusEl = document.getElementById('connection-status');
-                statusEl.innerHTML = `🟢 Live Backend: <b>${API_URL}</b>`;
+                statusEl.innerHTML = `🟢 Live Backend: <b>${getBaseUrl()}</b>`;
                 statusEl.classList.add('live');
 
                 loadUsers();
@@ -141,26 +146,38 @@
         // --- USER MANAGEMENT ---
         async function loadUsers() {
             try {
-                const res = await fetch(`${API_URL}/admin/users`, {
+                const res = await fetch(`${getBaseUrl()}/admin/users`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const users = await res.json();
                 const tbody = document.getElementById('user-list');
                 tbody.innerHTML = '';
                 
+                // CRITICAL FIX: If FastAPI returned an error (like {"detail": "Not Found"})
+                if (users.detail) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Server Error: ${users.detail}. Please restart your main.py server.</td></tr>`;
+                    return;
+                }
+
+                // Empty Check
+                if (Object.keys(users).length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">No users exist yet. Create one above!</td></tr>`;
+                    return;
+                }
+                
                 for (const [code, data] of Object.entries(users)) {
                     if (data.role === 'admin') continue;
                     tbody.innerHTML += `
                         <tr>
-                            <td><strong>${data.name}</strong></td>
-                            <td>${data.age}</td>
+                            <td><strong>${data.name || 'Unknown'}</strong></td>
+                            <td>${data.age || '--'}</td>
                             <td><span class="code-box">${code}</span></td>
                             <td><button class="delete" onclick="deleteUser('${code}')">Revoke</button></td>
                         </tr>
                     `;
                 }
             } catch (e) {
-                document.getElementById('user-list').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Backend connection failed. Check ngrok.</td></tr>`;
+                document.getElementById('user-list').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Backend connection failed. Is your ngrok running?</td></tr>`;
             }
         }
 
@@ -170,7 +187,7 @@
             if (!name || !age) return alert("Enter name and age");
 
             try {
-                await fetch(`${API_URL}/admin/users/add`, {
+                await fetch(`${getBaseUrl()}/admin/users/add`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({ name, age: parseInt(age) })
@@ -184,7 +201,7 @@
         async function deleteUser(code) {
             if (!confirm("Revoke access for this user?")) return;
             try {
-                await fetch(`${API_URL}/admin/users/${code}`, { 
+                await fetch(`${getBaseUrl()}/admin/users/${code}`, { 
                     method: 'DELETE',
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
@@ -199,7 +216,7 @@
             if(!name) return alert("Enter a group name");
 
             try {
-                const res = await fetch(`${API_URL}/admin/groups/create`, {
+                const res = await fetch(`${getBaseUrl()}/admin/groups/create`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'},
                     body: JSON.stringify({ name: name, admin_code: adminCode })
@@ -222,7 +239,7 @@
             if(!gcCode || !userCode) return alert("Enter both the GC Code and the Target User Code.");
 
             try {
-                const res = await fetch(`${API_URL}/admin/groups/${gcCode}/${action}`, {
+                const res = await fetch(`${getBaseUrl()}/admin/groups/${gcCode}/${action}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'},
                     body: JSON.stringify({ target_code: userCode, admin_code: adminCode })
