@@ -77,6 +77,24 @@
         </div>
 
         <div class="card" style="width: 100%; margin-top: 25px;">
+            <h3>Active Network Groups</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Group Name</th>
+                        <th>Admin Code</th>
+                        <th>Group Code (Join ID)</th>
+                        <th>Members</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="group-list">
+                    <tr><td colspan="5" style="text-align: center; color: #888;">Connecting to backend...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" style="width: 100%; margin-top: 25px;">
             <h3>Active Network Users</h3>
             <table>
                 <thead>
@@ -101,7 +119,6 @@
         let API_URL = '';
         let adminCode = localStorage.getItem('nyelle_admin_code') || '';
 
-        // --- YOUR CONFIGS ---
         const firebaseConfig = {
             apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs",
             projectId: "zane-c0ce1", 
@@ -112,7 +129,6 @@
         const remoteConfig = firebase.remoteConfig();
         remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
-        // HELPER: Safely clean URL to prevent trailing slash double-bugs
         function getBaseUrl() {
             return API_URL.replace(/\/+$/, '');
         }
@@ -131,6 +147,7 @@
                 statusEl.classList.add('live');
 
                 loadUsers();
+                loadGroups(); // Load the GC table!
             } catch (err) {
                 document.getElementById('connection-status').innerHTML = "🔴 Firebase Route Offline";
             }
@@ -146,24 +163,13 @@
         // --- USER MANAGEMENT ---
         async function loadUsers() {
             try {
-                const res = await fetch(`${getBaseUrl()}/admin/users`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
+                const res = await fetch(`${getBaseUrl()}/admin/users`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
                 const users = await res.json();
                 const tbody = document.getElementById('user-list');
                 tbody.innerHTML = '';
                 
-                // CRITICAL FIX: If FastAPI returned an error (like {"detail": "Not Found"})
-                if (users.detail) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Server Error: ${users.detail}. Please restart your main.py server.</td></tr>`;
-                    return;
-                }
-
-                // Empty Check
-                if (Object.keys(users).length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">No users exist yet. Create one above!</td></tr>`;
-                    return;
-                }
+                if (users.detail) { tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Server Error: ${users.detail}. Please restart your main.py server.</td></tr>`; return; }
+                if (Object.keys(users).length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #888;">No users exist yet. Create one above!</td></tr>`; return; }
                 
                 for (const [code, data] of Object.entries(users)) {
                     if (data.role === 'admin') continue;
@@ -176,9 +182,7 @@
                         </tr>
                     `;
                 }
-            } catch (e) {
-                document.getElementById('user-list').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Backend connection failed. Is your ngrok running?</td></tr>`;
-            }
+            } catch (e) {}
         }
 
         async function createUser() {
@@ -201,15 +205,37 @@
         async function deleteUser(code) {
             if (!confirm("Revoke access for this user?")) return;
             try {
-                await fetch(`${getBaseUrl()}/admin/users/${code}`, { 
-                    method: 'DELETE',
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
+                await fetch(`${getBaseUrl()}/admin/users/${code}`, { method: 'DELETE', headers: { 'ngrok-skip-browser-warning': 'true' } });
                 loadUsers();
             } catch (e) { alert("Failed to delete."); }
         }
 
         // --- GROUP MANAGEMENT ---
+        async function loadGroups() {
+            try {
+                const res = await fetch(`${getBaseUrl()}/admin/groups`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const groups = await res.json();
+                const tbody = document.getElementById('group-list');
+                tbody.innerHTML = '';
+                
+                if (groups.detail) { tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #da373c;">Server Error: ${groups.detail}</td></tr>`; return; }
+                if (Object.keys(groups).length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #888;">No groups exist yet. Deploy one above!</td></tr>`; return; }
+                
+                for (const [code, data] of Object.entries(groups)) {
+                    const memberCount = data.members ? data.members.length : 0;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${data.name}</strong></td>
+                            <td><span class="code-box" style="color: #8ea1ff;">${data.admin}</span></td>
+                            <td><span class="code-box">${code}</span></td>
+                            <td>${memberCount} user(s)</td>
+                            <td><button class="delete" onclick="deleteGroup('${code}')">Delete</button></td>
+                        </tr>
+                    `;
+                }
+            } catch (e) { document.getElementById('group-list').innerHTML = `<tr><td colspan="5" style="text-align: center; color: #da373c;">Failed to load groups.</td></tr>`; }
+        }
+
         async function createGroup() {
             if(!adminCode) return alert("Please set your Admin Credentials first!");
             const name = document.getElementById('gc-name').value.trim();
@@ -225,6 +251,7 @@
                 if(data.success) {
                     alert(`✅ Group Created successfully!\n\nShare this Group Code with your friends:\n${data.group_code}`);
                     document.getElementById('gc-name').value = '';
+                    loadGroups(); // Refresh table
                 } else {
                     alert("Failed to create group.");
                 }
@@ -248,10 +275,22 @@
                 if(data.success) {
                     alert(`✅ User successfully ${action === 'add' ? 'added to' : 'kicked from'} the group!`);
                     document.getElementById('gc-target-code').value = '';
+                    loadGroups(); // Refresh table to update member count
                 } else {
                     alert(`❌ Failed. Ensure you are the creator of this group and the codes are correct.`);
                 }
             } catch (e) { alert("Server Error."); }
+        }
+
+        async function deleteGroup(code) {
+            if (!confirm("Are you sure you want to completely delete this Group Chat?")) return;
+            try {
+                await fetch(`${getBaseUrl()}/admin/groups/${code}`, { 
+                    method: 'DELETE',
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                loadGroups();
+            } catch (e) { alert("Failed to delete group."); }
         }
 
         init();
