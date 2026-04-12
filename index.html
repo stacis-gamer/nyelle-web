@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nyelle Interface</title>
+    <style>
+        /* =========================================
+           BASE RESET & VARIABLES
+           ========================================= */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+
+        :root {
+            --bg-darker: #1e1f22; 
+            --bg-dark: #2b2d31;   
+            --bg-panel: #313338;  
+            --accent: #5865F2;    
+            --accent-shadow: #3b429f;
+            --accent-highlight: #8ea1ff;
+            --bubble-nyelle: #383a40;
+            --bubble-nyelle-shadow: #1e1f22;
+            --bubble-nyelle-high: #4f525a;
+            --text-main: #f2f3f5;
+            --text-muted: #b5bac1;
+        }
+
+        body { background-color: var(--bg-darker); height: 100vh; display: flex; overflow: hidden; color: var(--text-main); }
+
+        /* =========================================
+           LOGIN & SETUP OVERLAYS
+           ========================================= */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 999; 
+        }
+
+        .auth-box {
+            background: var(--bg-dark); padding: 35px 25px; border-radius: 20px;
+            border: 2px solid #111; box-shadow: 0px 10px 30px rgba(0,0,0,0.8);
+            text-align: center; width: 90%; max-width: 400px;
+        }
+
+        .auth-box h2 { color: var(--text-main); margin-bottom: 5px; font-weight: 900; letter-spacing: 1px; }
+        .auth-box p { color: var(--text-muted); margin-bottom: 20px; font-size: 14px; }
+        
+        .avatar-picker { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .avatar-option {
+            font-size: 30px; cursor: pointer; padding: 10px; background: var(--bg-darker);
+            border-radius: 50%; border: 3px solid transparent; transition: all 0.2s;
+            box-shadow: inset 0px 4px 6px rgba(0,0,0,0.5); width: 55px; height: 55px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .avatar-option:hover { transform: translateY(-3px); }
+        .avatar-option.selected { border-color: var(--accent); background: var(--bg-panel); box-shadow: 0px 0px 15px rgba(88, 101, 242, 0.5); }
+
+        .upload-section { margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .upload-btn { background: #1e1f22; border: 2px dashed #4f525a; color: var(--text-muted); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
+        .upload-btn:hover { border-color: var(--accent); color: white; }
+        
+        .custom-pfp-preview { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; display: none; border: 3px solid var(--accent); box-shadow: 0px 0px 15px rgba(88, 101, 242, 0.5); }
+
+        /* =========================================
+           LAYOUT & RESPONSIVE SIDEBAR
+           ========================================= */
+        .app-layout { display: flex; width: 100%; height: 100%; }
+        .sidebar { display: none; width: 280px; background: var(--bg-dark); border-right: 4px solid var(--bg-darker); flex-direction: column; padding: 20px; box-shadow: inset -4px 0px 0px rgba(0,0,0,0.2); }
+        @media (min-width: 800px) { .sidebar { display: flex; } }
+        .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--bg-panel); background-image: radial-gradient(var(--bg-darker) 1px, transparent 1px); background-size: 20px 20px; position: relative; }
+        .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; gap: 15px; box-shadow: 0px 4px 15px rgba(0,0,0,0.4); z-index: 10; }
+        @media (min-width: 800px) { .mobile-header { display: none; } }
+
+        .avatar-ring { width: 50px; height: 50px; background: var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 3px solid var(--text-main); box-shadow: 0px 4px 0px var(--accent-shadow); font-weight: 900; font-size: 22px; }
+        .status-box { background: var(--bg-darker); border-radius: 12px; padding: 15px; margin-top: 20px; border: 2px solid #111; box-shadow: inset 0px 3px 0px rgba(255,255,255,0.05), 0px 4px 0px #111; }
+        .status-title { font-size: 12px; color: var(--accent); text-transform: uppercase; font-weight: 900; letter-spacing: 1px; margin-bottom: 5px; }
+        .status-val { font-size: 16px; font-weight: bold; margin-bottom: 10px; text-transform: capitalize; }
+
+        /* =========================================
+           CHAT BOX & BUBBLES WITH PFPs
+           ========================================= */
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; align-items: center; scrollbar-width: thin; scrollbar-color: var(--accent) var(--bg-dark); }
+        .chat-container::-webkit-scrollbar { width: 8px; }
+        .chat-container::-webkit-scrollbar-thumb { background-color: var(--accent); border-radius: 10px; }
+        .chat-content { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 18px; }
+
+        .msg-wrapper { display: flex; gap: 10px; align-items: flex-end; max-width: 85%; }
+        @media (min-width: 800px) { .msg-wrapper { max-width: 70%; } }
+        .msg-nyelle { align-self: flex-start; }
+        .msg-user { align-self: flex-end; flex-direction: row-reverse; }
+
+        .bubble-pfp { font-size: 20px; background: var(--bg-darker); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border: 2px solid #111; box-shadow: 0px 3px 5px rgba(0,0,0,0.3); overflow: hidden; }
+        .bubble-pfp img { width: 100%; height: 100%; object-fit: cover; } 
+
+        .toon-bubble { padding: 14px 18px; border-radius: 20px; font-weight: 600; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
+        .nyelle-msg { background: var(--bubble-nyelle); border: 2px solid var(--bubble-nyelle-shadow); border-bottom-left-radius: 4px; box-shadow: inset 0px 4px 0px var(--bubble-nyelle-high), 0px 6px 0px var(--bubble-nyelle-shadow), 0px 8px 10px rgba(0,0,0,0.2); }
+        .user-msg { background: var(--accent); border: 2px solid var(--accent-shadow); border-bottom-right-radius: 4px; box-shadow: inset 0px 4px 0px var(--accent-highlight), 0px 6px 0px var(--accent-shadow), 0px 8px 10px rgba(0,0,0,0.2); }
+
+        /* =========================================
+           INPUT AREA & BUTTONS
+           ========================================= */
+        .input-wrapper { padding: 15px 20px 25px 20px; background: linear-gradient(0deg, var(--bg-darker) 0%, transparent 100%); display: flex; justify-content: center; }
+        .input-container { width: 100%; max-width: 800px; display: flex; gap: 12px; }
+        .toon-input { flex: 1; background: var(--bg-darker); border: 3px solid #111; border-radius: 18px; padding: 0 20px; color: white; font-size: 16px; font-weight: bold; outline: none; box-shadow: inset 0px 6px 10px rgba(0,0,0,0.5); }
+        .toon-input:focus { border-color: var(--accent); }
+        
+        .toon-btn { background: var(--accent); color: white; border: 2px solid var(--accent-shadow); border-radius: 16px; padding: 10px 25px; font-size: 16px; font-weight: 900; letter-spacing: 1px; cursor: pointer; box-shadow: inset 0px 4px 0px var(--accent-highlight), 0px 6px 0px var(--accent-shadow), 0px 8px 10px rgba(0,0,0,0.3); transition: all 0.1s ease; }
+        .toon-btn:active { transform: translateY(6px); box-shadow: inset 0px 2px 0px var(--accent-highlight), 0px 0px 0px var(--accent-shadow); }
+        .login-submit-btn { width: 100%; padding: 15px; }
+
+        .typing-dots { display: flex; gap: 4px; align-items: center; height: 20px; }
+        .dot { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay" class="overlay">
+        <div class="auth-box">
+            <h2>System Access</h2>
+            <p>Enter your 10-character code.</p>
+            <input type="text" id="access-code" class="toon-input" placeholder="e.g. A9X7B2P4MM" style="margin-bottom: 15px; padding: 15px; text-align: center; letter-spacing: 2px; text-transform: uppercase; width: 100%;">
+            <button id="login-btn" class="toon-btn login-submit-btn">AUTHENTICATE</button>
+            <p id="login-error" style="color: #da373c; display: none; margin-top: 15px; font-weight: bold; font-size: 14px;"></p>
+        </div>
+    </div>
+
+    <div id="profile-overlay" class="overlay" style="display: none;">
+        <div class="auth-box">
+            <h2>Welcome, <span id="welcome-name" style="color: var(--accent);">User</span>!</h2>
+            <p>Choose your avatar or upload a custom one.</p>
+            
+            <div class="avatar-picker">
+                <div class="avatar-option selected" onclick="selectAvatar(this, '😎')">😎</div>
+                <div class="avatar-option" onclick="selectAvatar(this, '👾')">👾</div>
+                <div class="avatar-option" onclick="selectAvatar(this, '🐱')">🐱</div>
+                <img id="custom-preview" class="custom-pfp-preview" src="">
+            </div>
+
+            <div class="upload-section">
+                <label for="custom-pfp-upload" class="upload-btn">📷 Upload Picture</label>
+                <input type="file" id="custom-pfp-upload" accept="image/*" style="display: none;">
+            </div>
+
+            <button id="finish-setup-btn" class="toon-btn login-submit-btn">ENTER SYSTEM</button>
+        </div>
+    </div>
+
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+                <div class="avatar-ring">N</div>
+                <div>
+                    <h2 style="font-weight: 900; letter-spacing: 1px;">Nyelle</h2>
+                    <p style="color: #23a559; font-weight: bold; font-size: 13px;">● System Online</p>
+                </div>
+            </div>
+            <h3 style="color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Live Telemetry</h3>
+            <div class="status-box">
+                <div class="status-title">Current Location</div>
+                <div class="status-val" id="desk-loc">Tracking...</div>
+                <div class="status-title">Current Activity</div>
+                <div class="status-val" id="desk-act">Tracking...</div>
+                <div class="status-title">Biological Mood</div>
+                <div class="status-val" id="desk-mood" style="margin-bottom: 0;">Tracking...</div>
+            </div>
+        </aside>
+
+        <main class="main-chat">
+            <header class="mobile-header">
+                <div class="avatar-ring" style="width: 40px; height: 40px; font-size: 18px;">N</div>
+                <div>
+                    <h2 style="font-size: 18px; font-weight: 900;">Nyelle</h2>
+                    <p style="font-size: 12px; color: var(--text-muted); text-transform: capitalize;" id="mob-status">Connecting...</p>
+                </div>
+            </header>
+
+            <div class="chat-container" id="chat-box">
+                <div class="chat-content" id="chat-content"></div>
+            </div>
+
+            <div class="input-wrapper">
+                <div class="input-container">
+                    <input type="text" id="user-input" class="toon-input" placeholder="Message Nyelle..." autocomplete="off">
+                    <button id="send-btn" class="toon-btn">SEND</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-remote-config-compat.js"></script>
+
+    <script>
+        // ==========================================
+        // STATE, FIREBASE & AUTHENTICATION
+        // ==========================================
+        let API_URL = ''; 
+        let currentUserCode = localStorage.getItem('nyelle_user_code');
+        let currentUserName = localStorage.getItem('nyelle_user_name');
+        let currentUserPfp = localStorage.getItem('nyelle_user_pfp');
+        let tempSelectedAvatar = '😎';
+        let syncInterval;
+
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs",
+            projectId: "zane-c0ce1", 
+            appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c"
+        };
+
+        // Initialize Firebase Remote Config
+        firebase.initializeApp(firebaseConfig);
+        const remoteConfig = firebase.remoteConfig();
+        remoteConfig.settings.minimumFetchIntervalMillis = 0; 
+
+        // Bootloader: Fetches URL from Firebase before starting anything
+        async function initializeDynamicConnection() {
+            try {
+                await remoteConfig.fetchAndActivate();
+                API_URL = remoteConfig.getString('nyelle_server_url');
+                
+                if (!API_URL) throw new Error("URL is empty in Firebase");
+                
+                console.log("Connected to Nyelle Core at:", API_URL);
+
+                // If already logged in previously, bypass the login screen
+                if (currentUserCode && currentUserName && currentUserPfp) {
+                    document.getElementById('login-overlay').style.display = 'none';
+                    startSystem();
+                }
+            } catch (err) {
+                console.error("Firebase Routing Error:", err);
+                const errEl = document.getElementById('login-error');
+                errEl.textContent = "Critical: Failed to fetch backend route from Firebase.";
+                errEl.style.display = 'block';
+            }
+        }
+
+        // Fire the bootloader immediately
+        initializeDynamicConnection();
+
+        // Login Logic
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const code = document.getElementById('access-code').value.trim().toUpperCase();
+            if (!code) return;
+            if (!API_URL) return alert("System hasn't retrieved the backend URL yet. Please wait.");
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    currentUserCode = data.user_id;
+                    currentUserName = data.user.name;
+                    localStorage.setItem('nyelle_user_code', currentUserCode);
+                    localStorage.setItem('nyelle_user_name', currentUserName);
+
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('welcome-name').textContent = currentUserName;
+                    document.getElementById('profile-overlay').style.display = 'flex';
+                } else {
+                    const errEl = document.getElementById('login-error');
+                    errEl.textContent = "Access Denied. Invalid Code.";
+                    errEl.style.display = 'block';
+                }
+            } catch (err) {
+                alert("Cannot reach the backend server at " + API_URL);
+            }
+        });
+
+        // ------------------------------------------
+        // CUSTOM IMAGE UPLOAD LOGIC
+        // ------------------------------------------
+        const imageUploadInput = document.getElementById('custom-pfp-upload');
+        const customPreview = document.getElementById('custom-preview');
+
+        function selectAvatar(element, emoji) {
+            tempSelectedAvatar = emoji;
+            document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+            customPreview.classList.remove('selected');
+            element.classList.add('selected');
+        }
+
+        imageUploadInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64String = event.target.result;
+                tempSelectedAvatar = base64String;
+
+                customPreview.src = base64String;
+                customPreview.style.display = 'block';
+                
+                document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                customPreview.classList.add('selected');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('finish-setup-btn').addEventListener('click', () => {
+            currentUserPfp = tempSelectedAvatar;
+            localStorage.setItem('nyelle_user_pfp', currentUserPfp);
+            document.getElementById('profile-overlay').style.display = 'none';
+            startSystem();
+        });
+
+        // ==========================================
+        // CHAT & TELEMETRY LOGIC
+        // ==========================================
+        const chatContent = document.getElementById('chat-content');
+        const chatContainer = document.getElementById('chat-box');
+        const inputField = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
+
+        function addMessage(text, isUser) {
+            const msgWrapper = document.createElement('div');
+            msgWrapper.className = `msg-wrapper ${isUser ? 'msg-user' : 'msg-nyelle'}`;
+            
+            const pfp = document.createElement('div');
+            pfp.className = 'bubble-pfp';
+            
+            if (isUser) {
+                if (currentUserPfp.startsWith('data:image')) {
+                    pfp.innerHTML = `<img src="${currentUserPfp}" alt="User">`;
+                } else {
+                    pfp.textContent = currentUserPfp;
+                }
+            } else {
+                pfp.textContent = 'N';
+            }
+            
+            const bubble = document.createElement('div');
+            bubble.className = `toon-bubble ${isUser ? 'user-msg' : 'nyelle-msg'}`;
+            bubble.innerHTML = `<p>${text}</p>`;
+            
+            msgWrapper.appendChild(pfp);
+            msgWrapper.appendChild(bubble);
+            chatContent.appendChild(msgWrapper);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            const typingWrapper = document.createElement('div');
+            typingWrapper.className = 'msg-wrapper msg-nyelle';
+            typingWrapper.id = 'typing-indicator';
+            typingWrapper.innerHTML = `
+                <div class="bubble-pfp">N</div>
+                <div class="toon-bubble nyelle-msg">
+                    <div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                </div>
+            `;
+            chatContent.appendChild(typingWrapper);
+            scrollToBottom();
+        }
+
+        function removeTyping() {
+            const typing = document.getElementById('typing-indicator');
+            if (typing) typing.remove();
+        }
+
+        async function sendMessage() {
+            const text = inputField.value.trim();
+            if (!text || !API_URL) return;
+
+            addMessage(text, true);
+            inputField.value = '';
+            showTyping();
+
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({ message: text, user_id: currentUserCode }) 
+                });
+                
+                if (!response.ok) throw new Error("Server error");
+                
+                const data = await response.json();
+                removeTyping();
+                addMessage(data.reply, false);
+
+            } catch (err) {
+                console.error(err);
+                removeTyping();
+                addMessage("Connection dropped... is the backend running?", false);
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        inputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+        let lastMessageCount = 0;
+
+        async function syncWithServer() {
+            if (!API_URL) return;
+            try {
+                const stateRes = await fetch(`${API_URL}/state`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (stateRes.ok) {
+                    const data = await stateRes.json();
+                    const nyelle = data.Nyelle;
+                    
+                    document.getElementById('desk-loc').textContent = nyelle.location;
+                    document.getElementById('desk-act').textContent = nyelle.activity;
+                    document.getElementById('desk-mood').textContent = nyelle.mood;
+                    document.getElementById('mob-status').textContent = `${nyelle.location} • ${nyelle.mood}`;
+                }
+
+                const msgRes = await fetch(`${API_URL}/messages`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                if (msgRes.ok) {
+                    const data = await msgRes.json();
+                    const msgs = data.messages || [];
+                    
+                    if (msgs.length > lastMessageCount) {
+                        if (lastMessageCount > 0) { 
+                            const newMsgsCount = msgs.length - lastMessageCount;
+                            for (let i = msgs.length - newMsgsCount; i < msgs.length; i++) {
+                                addMessage(msgs[i].text, false);
+                            }
+                        }
+                        lastMessageCount = msgs.length;
+                    }
+                }
+            } catch (err) {}
+        }
+
+        // ==========================================
+        // HISTORY BOOTLOADER (NGRK BYPASS ADDED)
+        // ==========================================
+        async function startSystem() {
+            try {
+                // Fetch chat history from the backend with bypass header
+                const res = await fetch(`${API_URL}/history/${currentUserCode}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    const history = data.history;
+                    
+                    // If history exists, populate it!
+                    if (history && history.length > 0) {
+                        history.forEach(msg => {
+                            const isUser = msg.role === "User"; 
+                            addMessage(msg.content, isUser);
+                        });
+                    } else {
+                        // New user greeting
+                        addMessage(`System initialized. What's up, ${currentUserName}?`, false);
+                    }
+                }
+            } catch (err) {
+                console.error("Could not load history:", err);
+                addMessage(`System initialized (Offline Mode). What's up, ${currentUserName}?`, false);
+            }
+
+            // Start background telemetry loops
+            syncWithServer();
+            syncInterval = setInterval(syncWithServer, 5000);
+        }
+    </script>
+</body>
+</html>

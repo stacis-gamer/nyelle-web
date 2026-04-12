@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nyelle - Master Control</title>
+    <style>
+        body { background: #1e1f22; color: #f2f3f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; }
+        .container { max-width: 800px; margin: 0 auto; background: #2b2d31; padding: 25px; border-radius: 10px; box-shadow: 0px 8px 20px rgba(0,0,0,0.4); }
+        h1 { color: #5865F2; margin-bottom: 5px; }
+        .status { font-size: 13px; font-weight: bold; color: #b5bac1; margin-bottom: 25px; display: inline-block; padding: 5px 10px; background: #1e1f22; border-radius: 5px; }
+        
+        input, button { padding: 12px; margin: 5px 5px 5px 0; border-radius: 6px; border: none; outline: none; }
+        input { background: #1e1f22; color: white; width: 220px; border: 2px solid transparent; transition: 0.2s; }
+        input:focus { border-color: #5865F2; }
+        
+        button { background: #5865F2; color: white; cursor: pointer; font-weight: bold; transition: 0.1s; }
+        button:active { transform: translateY(2px); }
+        button.delete { background: #da373c; padding: 8px 12px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: #1e1f22; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #2b2d31; }
+        th { background: #111214; color: #b5bac1; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        
+        .code-box { font-family: monospace; background: #111; padding: 6px 12px; border-radius: 4px; letter-spacing: 2px; color: #58f28a; font-size: 16px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Nyelle Core - Access Management</h1>
+        <div id="connection-status" class="status">🟡 Routing via Firebase...</div>
+        
+        <div style="background: #1e1f22; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #313338;">
+            <h3 style="margin-bottom: 15px; color: #f2f3f5;">Generate Access Code</h3>
+            <input type="text" id="new-name" placeholder="Friend's Name">
+            <input type="number" id="new-age" placeholder="Age">
+            <button onclick="createUser()">+ Create User</button>
+        </div>
+
+        <table>
+            <thead><tr><th>Name</th><th>Age</th><th>Access Code (Give this to them)</th><th>Actions</th></tr></thead>
+            <tbody id="user-list">
+                <tr><td colspan="4" style="text-align: center; color: #b5bac1;">Loading users...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-remote-config-compat.js"></script>
+
+    <script>
+        let API_URL = '';
+
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs",
+            projectId: "zane-c0ce1", 
+            appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const remoteConfig = firebase.remoteConfig();
+        remoteConfig.settings.minimumFetchIntervalMillis = 0; // Force immediate fetch for dev
+
+        async function initializeDynamicConnection() {
+            try {
+                await remoteConfig.fetchAndActivate();
+                API_URL = remoteConfig.getString('nyelle_server_url');
+                
+                if (!API_URL) throw new Error("URL is empty in Firebase");
+                
+                console.log("Admin Panel connected to Core at:", API_URL);
+                document.getElementById('connection-status').innerHTML = `🟢 Live: <b>${API_URL}</b>`;
+
+                // Now that we have the URL, load the user database
+                loadUsers();
+            } catch (err) {
+                console.error("Firebase Routing Error:", err);
+                document.getElementById('connection-status').innerHTML = "🔴 System Offline (Could not fetch route)";
+            }
+        }
+
+        // Boot the admin panel connection
+        initializeDynamicConnection();
+
+        // --- ADMIN FUNCTIONS ---
+        async function loadUsers() {
+            if (!API_URL) return;
+            try {
+                const res = await fetch(`${API_URL}/admin/users`);
+                const users = await res.json();
+                const tbody = document.getElementById('user-list');
+                tbody.innerHTML = '';
+                
+                for (const [code, data] of Object.entries(users)) {
+                    if (data.role === 'admin') continue; // Hide your master key
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${data.name}</strong></td>
+                            <td>${data.age}</td>
+                            <td><span class="code-box">${code}</span></td>
+                            <td><button class="delete" onclick="deleteUser('${code}')">Revoke</button></td>
+                        </tr>
+                    `;
+                }
+            } catch (e) {
+                document.getElementById('user-list').innerHTML = `<tr><td colspan="4" style="text-align: center; color: #da373c;">Backend offline or unreachable.</td></tr>`;
+            }
+        }
+
+        async function createUser() {
+            if (!API_URL) return alert("System not connected yet.");
+            
+            const name = document.getElementById('new-name').value.trim();
+            const age = document.getElementById('new-age').value.trim();
+            if (!name || !age) return alert("Fill out name and age.");
+
+            try {
+                await fetch(`${API_URL}/admin/users/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, age: parseInt(age) })
+                });
+                
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-age').value = '';
+                loadUsers();
+            } catch (e) {
+                alert("Failed to create user. Backend might be offline.");
+            }
+        }
+
+        async function deleteUser(code) {
+            if (!API_URL) return;
+            if (!confirm("Permanently revoke access for this code? They will be locked out.")) return;
+            
+            try {
+                await fetch(`${API_URL}/admin/users/${code}`, { method: 'DELETE' });
+                loadUsers();
+            } catch (e) {
+                alert("Failed to revoke user.");
+            }
+        }
+    </script>
+</body>
+</html>
