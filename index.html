@@ -369,7 +369,12 @@
             ws.onopen = () => {
                 clearInterval(pingInterval);
                 pingInterval = setInterval(() => { if (ws.readyState === 1) ws.send(JSON.stringify({ type: "ping" })); }, 25000); 
-                if (isReconnecting) { chatHistories = {}; switchChat(activeChat); isReconnecting = false; }
+                
+                // ANTI-FLICKER PATCH: 
+                // Connect silently in the background without wiping the UI
+                if (isReconnecting) { 
+                    isReconnecting = false; 
+                }
             };
 
             ws.onmessage = (e) => {
