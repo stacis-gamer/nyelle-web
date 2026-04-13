@@ -559,8 +559,18 @@
         };
 
         const inputF = document.getElementById('user-input');
+        
+        // --- NEW UPDATED SEND BUTTON WITH CONNECTION ALERT ---
         document.getElementById('send-btn').onclick = () => {
-            const text = inputF.value.trim(); if (!text || ws?.readyState !== 1) return;
+            const text = inputF.value.trim(); 
+            if (!text) return;
+            
+            // Connection check guard
+            if (!ws || ws.readyState !== 1) {
+                alert("Disconnected from Server! Waiting for Cloudflare/Backend to reconnect...");
+                return;
+            }
+
             const tempId = "msg_" + (Date.now() + Math.random().toString(36).substr(2, 5));
             const repD = replyingTo ? { ...replyingTo } : null;
             if (!chatHistories[activeChat]) chatHistories[activeChat] = [];
@@ -569,6 +579,7 @@
             ws.send(JSON.stringify({ type: 'chat', target_user: activeChat, target_room: activeChat, text: text, msg_id: tempId, pfp: currentUserPfp, sender_name: currentUserName, reply_to_id: repD?.id, reply_to_text: repD?.text, reply_to_sender: repD?.sender }));
             inputF.value = ''; cancelReply(); 
         };
+        
         inputF.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
         function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshLists(); switchChat('NYELLE_CORE'); connectWebSocket(); syncProfiles(); }
         function isMobile() { return window.innerWidth < 800; }
