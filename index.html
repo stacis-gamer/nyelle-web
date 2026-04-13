@@ -75,9 +75,8 @@
         .status-dot { width: 10px; height: 10px; background: var(--text-muted); border-radius: 50%; border: 2px solid var(--bg-dark); }
         .status-dot.online { background: var(--success); }
 
-        .main-chat { flex: 1; width: 100%; display: flex; flex-direction: column; background: var(--bg-panel); position: relative; overflow: hidden; height: 100%; }
+        .main-chat { flex: 1; width: 100%; display: flex; flex-direction: column; background: var(--bg-panel); background-image: radial-gradient(var(--bg-darker) 1px, transparent 1px); background-size: 20px 20px; position: relative; overflow: hidden; height: 100%; }
         .mobile-header { display: flex; padding: 15px 20px; background: var(--bg-dark); border-bottom: 4px solid var(--bg-darker); align-items: center; z-index: 10; flex-shrink: 0;}
-        
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; align-items: center; width: 100%; min-height: 0; }
         .chat-content { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 28px; }
         .msg-wrapper { display: flex; gap: 10px; align-items: flex-end; max-width: 85%; position: relative; }
@@ -108,13 +107,14 @@
         @keyframes flashMsg { 0% { filter: brightness(1); } 50% { filter: brightness(1.7); transform: scale(1.02); } 100% { filter: brightness(1); transform: scale(1); } }
         .highlight-flash { animation: flashMsg 0.8s ease; }
 
-        .input-wrapper { padding: 15px 20px calc(15px + env(safe-area-inset-bottom)); background: var(--bg-darker); display: flex; flex-direction: column; align-items: center; width: 100%; flex-shrink: 0; border-top: 1px solid #111; }
+        .input-wrapper { padding: 15px 20px calc(15px + env(safe-area-inset-bottom)); background: linear-gradient(0deg, var(--bg-darker) 0%, transparent 100%); display: flex; flex-direction: column; align-items: center; width: 100%; flex-shrink: 0; border-top: 1px solid #111; }
         .input-container { width: 100%; max-width: 800px; display: flex; gap: 12px; }
-        .toon-input { flex: 1; background: var(--bg-darker); border: 3px solid #111; border-radius: 18px; padding: 0 20px; color: white; font-size: 16px; font-weight: bold; outline: none; height: 45px; }
-        .toon-btn { background: var(--accent); color: white; border: 2px solid var(--accent-shadow); border-radius: 16px; padding: 0 25px; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0px 6px 0px var(--accent-shadow); height: 45px; }
+        .toon-input { flex: 1; background: var(--bg-darker); border: 3px solid #111; border-radius: 18px; padding: 0 20px; color: white; font-size: 16px; font-weight: bold; outline: none; }
+        .toon-btn { background: var(--accent); color: white; border: 2px solid var(--accent-shadow); border-radius: 16px; padding: 10px 25px; font-size: 15px; font-weight: 900; cursor: pointer; box-shadow: 0px 6px 0px var(--accent-shadow); }
         .typing-dots { display: flex; gap: 4px; align-items: center; height: 20px; }
         .dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        
         .chat-image { max-width: 100%; border-radius: 12px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: block; }
     </style>
 </head>
@@ -169,6 +169,7 @@
     <div id="msg-context-menu" class="context-menu">
         <div class="menu-info" id="msg-time-info">Sent at --:--</div>
         <div class="menu-item" onclick="prepareReply()">↩️ Reply</div>
+        <div class="menu-item" onclick="copyMessageText()">📋 Copy Text</div>
         <div class="menu-item" onclick="addReaction('❤️')">❤️ React</div>
         <div class="menu-item" onclick="addReaction('🔥')">🔥 React</div>
         <div class="menu-item danger" onclick="deleteMessage()">🗑️ Delete locally</div>
@@ -242,7 +243,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-remote-config-compat.js"></script>
 
     <script>
-        // CRITICAL FIX: chatHistories initialized as completely empty object {}
         let API_URL = '', currentUserCode = localStorage.getItem('nyelle_user_code'), currentUserName = localStorage.getItem('nyelle_user_name'), currentUserPfp = localStorage.getItem('nyelle_user_pfp'), ws, activeChat = 'NYELLE_CORE', chatHistories = {}, friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {}, groupsList = JSON.parse(localStorage.getItem('nyelle_groups')) || {}, activeMenuMsgId = null, activeMenuFriendCode = null;
         let groupMembersCache = {}; 
         let pingInterval;
@@ -272,16 +272,104 @@
             backdrop.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
         }
 
+        document.getElementById('login-btn').onclick = async () => {
+            const code = document.getElementById('access-code').value.trim().toUpperCase();
+            if (!code || !API_URL) return;
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ code }) });
+                const data = await res.json();
+                if (data.success) {
+                    currentUserCode = data.user_id; currentUserName = data.user.name;
+                    localStorage.setItem('nyelle_user_code', currentUserCode); localStorage.setItem('nyelle_user_name', currentUserName);
+                    try {
+                        const pfpRes = await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                        const pfpData = await pfpRes.json();
+                        if (pfpData.pfp !== "👤") { currentUserPfp = pfpData.pfp; localStorage.setItem('nyelle_user_pfp', currentUserPfp); }
+                    } catch(e) {}
+                    document.getElementById('login-overlay').style.display = 'none'; document.getElementById('welcome-name').textContent = currentUserName;
+                    if(!currentUserPfp || currentUserPfp === '👤') document.getElementById('profile-overlay').style.display = 'flex';
+                    else startSystem();
+                }
+            } catch(e) { alert("Server error."); }
+        };
+
+        function selectAvatar(el, pfp) { currentUserPfp = pfp; document.querySelectorAll('.avatar-option, #custom-preview').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); }
+        document.getElementById('custom-pfp-upload').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => { currentUserPfp = ev.target.result; const p = document.getElementById('custom-preview'); p.src = currentUserPfp; p.style.display = 'block'; p.classList.add('selected'); document.querySelectorAll('.avatar-option').forEach(i => i.classList.remove('selected'));};
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        function openMyProfileMenu(e) { e.stopPropagation(); const menu = document.getElementById('my-profile-menu'); menu.style.display = 'flex'; menu.style.top = `${e.clientY + 20}px`; menu.style.left = `${isMobile() ? 20 : e.clientX}px`; }
+        function openProfileSetup() { document.getElementById('profile-overlay').style.display = 'flex'; document.getElementById('cancel-setup-btn').style.display = 'block'; }
+        document.getElementById('cancel-setup-btn').onclick = () => { document.getElementById('profile-overlay').style.display = 'none'; }
+
+        document.getElementById('finish-setup-btn').onclick = async () => {
+            localStorage.setItem('nyelle_user_pfp', currentUserPfp); document.getElementById('profile-overlay').style.display = 'none';
+            if (document.getElementById('my-sidebar-pfp')) document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
+            try { await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ pfp: currentUserPfp }) }); } catch(e) {}
+            if(!ws || ws.readyState !== 1) startSystem();
+        };
+
+        function logOut() { localStorage.clear(); location.reload(); }
+        async function wipeMemory() {
+            if(confirm("Wipe Nyelle's memory of you? This cannot be undone.")) {
+                try {
+                    await fetch(`${API_URL}/api/memory/${currentUserCode}`, { method: 'DELETE', headers: {'ngrok-skip-browser-warning': 'true'} });
+                    chatHistories['NYELLE_CORE'] = []; switchChat('NYELLE_CORE'); alert("Memory wiped.");
+                } catch(e) { alert("Failed to connect to server."); }
+            }
+        }
+
+        async function showGroupInfo() {
+            if(!groupsList[activeChat]) return;
+            document.getElementById('gc-info-title').textContent = groupsList[activeChat].name;
+            document.getElementById('gc-members-list').innerHTML = '<div style="text-align:center; color:#888;">Loading...</div>';
+            document.getElementById('group-info-overlay').style.display = 'flex';
+            try {
+                const res = await fetch(`${API_URL}/api/groups/${activeChat}/info`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                const data = await res.json();
+                if(data.success) {
+                    const list = document.getElementById('gc-members-list'); list.innerHTML = '';
+                    data.members.forEach(m => {
+                        list.innerHTML += `<div style="display:flex; align-items:center; gap:10px; font-weight:bold; font-size:14px;"><div class="avatar-mini" style="width:30px; height:30px;">${renderPfp(m.pfp)}</div> ${m.name}</div>`;
+                    });
+                }
+            } catch(e) { document.getElementById('gc-members-list').innerHTML = '<div style="color:var(--danger);">Failed to fetch data</div>'; }
+        }
+
+        async function syncProfiles() {
+            let updated = false;
+            for (let code in friendsList) {
+                try {
+                    const res = await fetch(`${API_URL}/api/user/${code}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                    const data = await res.json();
+                    if(data.pfp && data.pfp !== '👤' && friendsList[code].pfp !== data.pfp) { friendsList[code].pfp = data.pfp; updated = true; }
+                } catch(e) {}
+            }
+            if(updated) { localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshLists(); if(activeChat !== 'NYELLE_CORE' && friendsList[activeChat]) document.getElementById('mob-pfp').innerHTML = renderPfp(friendsList[activeChat].pfp); }
+
+            for (let gCode in groupsList) {
+                try {
+                    const res = await fetch(`${API_URL}/api/groups/${gCode}/info`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                    const data = await res.json();
+                    if(data.success) {
+                        groupMembersCache[gCode] = {};
+                        data.members.forEach(m => { groupMembersCache[gCode][m.code] = m; });
+                    }
+                } catch(e) {}
+            }
+        }
+
         function connectWebSocket() {
             if (!API_URL) return;
             if (ws && (ws.readyState === 1 || ws.readyState === 0)) ws.close();
             ws = new WebSocket(API_URL.replace(/^http/, 'ws') + `/ws/${currentUserCode}`);
             
             ws.onopen = () => {
-                console.log("🟢 Connected");
-                isReconnecting = false;
                 clearInterval(pingInterval);
                 pingInterval = setInterval(() => { if (ws.readyState === 1) ws.send(JSON.stringify({ type: "ping" })); }, 25000); 
+                if (isReconnecting) { chatHistories = {}; switchChat(activeChat); isReconnecting = false; }
             };
 
             ws.onmessage = (e) => {
@@ -397,6 +485,22 @@
             document.getElementById('msg-context-menu').style.display = 'none';
         }
 
+        // NEW JS FUNCTION FOR COPY TEXT
+        function copyMessageText() {
+            if (!activeMenuMsgId) return;
+            const bubble = document.getElementById(`msg-${activeMenuMsgId}`);
+            if (!bubble) return;
+            
+            // Try to pull plain text, ignore images to prevent base64 spam
+            const pTag = bubble.querySelector('p');
+            if (pTag) {
+                navigator.clipboard.writeText(pTag.innerText).then(() => {
+                    // Success, silently close menu
+                }).catch(err => alert("Failed to copy text."));
+            }
+            document.getElementById('msg-context-menu').style.display = 'none';
+        }
+
         function cancelReply() { replyingTo = null; document.getElementById('reply-preview').style.display = 'none'; }
         function renderPfp(p) { return (p && p.startsWith('data:image')) ? `<img src="${p}">` : (p || '👤'); }
         function openMsgMenu(e, id) { e.stopPropagation(); activeMenuMsgId = id; const menu = document.getElementById('msg-context-menu'), bubble = document.getElementById(`msg-${id}`); if(!bubble) return; document.getElementById('msg-time-info').textContent = `Sent at ${bubble.dataset.time}`; menu.style.display = 'flex'; menu.style.top = `${e.clientY}px`; menu.style.left = `${Math.min(e.clientX, window.innerWidth - 160)}px`; }
@@ -405,95 +509,8 @@
         function addReaction(emoji) { if (!activeMenuMsgId) return; applyReactionToUI(activeMenuMsgId, emoji); if (ws?.readyState === 1 && activeChat !== 'NYELLE_CORE') ws.send(JSON.stringify({ type: "reaction", target_room: activeChat, target_user: activeChat, msg_id: activeMenuMsgId, emoji: emoji })); }
         function applyReactionToUI(id, emoji) { const b = document.getElementById(`msg-${id}`); if (!b) return; let badge = b.querySelector('.react-badge'); if(!badge) { badge = document.createElement('div'); badge.className = 'react-badge'; b.appendChild(badge); } badge.textContent = emoji; }
         function deleteMessage() { if (activeMenuMsgId) document.getElementById(`msg-${activeMenuMsgId}`).closest('.msg-wrapper').remove(); }
-        function openMyProfileMenu(e) { e.stopPropagation(); const menu = document.getElementById('my-profile-menu'); menu.style.display = 'flex'; menu.style.top = `${e.clientY + 20}px`; menu.style.left = `${isMobile() ? 20 : e.clientX}px`; }
-        function openProfileSetup() { document.getElementById('profile-overlay').style.display = 'flex'; document.getElementById('cancel-setup-btn').style.display = 'block'; }
-        function logOut() { localStorage.clear(); location.reload(); }
-        async function wipeMemory() {
-            if(confirm("Wipe Nyelle's memory of you? This cannot be undone.")) {
-                try {
-                    await fetch(`${API_URL}/api/memory/${currentUserCode}`, { method: 'DELETE', headers: {'ngrok-skip-browser-warning': 'true'} });
-                    chatHistories['NYELLE_CORE'] = []; switchChat('NYELLE_CORE'); alert("Memory wiped.");
-                } catch(e) { alert("Failed to connect to server."); }
-            }
-        }
+        function unfriendUser() { if (activeMenuFriendCode && confirm(`Remove ${activeMenuFriendCode}?`)) { delete friendsList[activeMenuFriendCode]; delete groupsList[activeMenuFriendCode]; localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); localStorage.setItem('nyelle_groups', JSON.stringify(groupsList)); refreshLists(); switchChat('NYELLE_CORE'); } }
 
-        document.getElementById('login-btn').onclick = async () => {
-            const code = document.getElementById('access-code').value.trim().toUpperCase();
-            if (!code || !API_URL) return;
-            try {
-                const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ code }) });
-                const data = await res.json();
-                if (data.success) {
-                    currentUserCode = data.user_id; currentUserName = data.user.name;
-                    localStorage.setItem('nyelle_user_code', currentUserCode); localStorage.setItem('nyelle_user_name', currentUserName);
-                    try {
-                        const pfpRes = await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                        const pfpData = await pfpRes.json();
-                        if (pfpData.pfp !== "👤") { currentUserPfp = pfpData.pfp; localStorage.setItem('nyelle_user_pfp', currentUserPfp); }
-                    } catch(e) {}
-                    document.getElementById('login-overlay').style.display = 'none'; document.getElementById('welcome-name').textContent = currentUserName;
-                    if(!currentUserPfp || currentUserPfp === '👤') document.getElementById('profile-overlay').style.display = 'flex';
-                    else startSystem();
-                }
-            } catch(e) { alert("Server error."); }
-        };
-
-        function selectAvatar(el, pfp) { currentUserPfp = pfp; document.querySelectorAll('.avatar-option, #custom-preview').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); }
-        document.getElementById('custom-pfp-upload').onchange = (e) => {
-            const reader = new FileReader();
-            reader.onload = (ev) => { currentUserPfp = ev.target.result; const p = document.getElementById('custom-preview'); p.src = currentUserPfp; p.style.display = 'block'; p.classList.add('selected'); document.querySelectorAll('.avatar-option').forEach(i => i.classList.remove('selected'));};
-            reader.readAsDataURL(e.target.files[0]);
-        };
-
-        document.getElementById('cancel-setup-btn').onclick = () => { document.getElementById('profile-overlay').style.display = 'none'; }
-        document.getElementById('finish-setup-btn').onclick = async () => {
-            localStorage.setItem('nyelle_user_pfp', currentUserPfp); document.getElementById('profile-overlay').style.display = 'none';
-            if (document.getElementById('my-sidebar-pfp')) document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
-            try { await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify({ pfp: currentUserPfp }) }); } catch(e) {}
-            if(!ws || ws.readyState !== 1) startSystem();
-        };
-
-        async function showGroupInfo() {
-            if(!groupsList[activeChat]) return;
-            document.getElementById('gc-info-title').textContent = groupsList[activeChat].name;
-            document.getElementById('gc-members-list').innerHTML = '<div style="text-align:center; color:#888;">Loading...</div>';
-            document.getElementById('group-info-overlay').style.display = 'flex';
-            try {
-                const res = await fetch(`${API_URL}/api/groups/${activeChat}/info`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                const data = await res.json();
-                if(data.success) {
-                    const list = document.getElementById('gc-members-list'); list.innerHTML = '';
-                    data.members.forEach(m => {
-                        list.innerHTML += `<div style="display:flex; align-items:center; gap:10px; font-weight:bold; font-size:14px;"><div class="avatar-mini" style="width:30px; height:30px;">${renderPfp(m.pfp)}</div> ${m.name}</div>`;
-                    });
-                }
-            } catch(e) { document.getElementById('gc-members-list').innerHTML = '<div style="color:var(--danger);">Failed to fetch data</div>'; }
-        }
-
-        async function syncProfiles() {
-            let updated = false;
-            for (let code in friendsList) {
-                try {
-                    const res = await fetch(`${API_URL}/api/user/${code}/profile`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                    const data = await res.json();
-                    if(data.pfp && data.pfp !== '👤' && friendsList[code].pfp !== data.pfp) { friendsList[code].pfp = data.pfp; updated = true; }
-                } catch(e) {}
-            }
-            if(updated) { localStorage.setItem('nyelle_friends', JSON.stringify(friendsList)); refreshLists(); if(activeChat !== 'NYELLE_CORE' && friendsList[activeChat]) document.getElementById('mob-pfp').innerHTML = renderPfp(friendsList[activeChat].pfp); }
-
-            for (let gCode in groupsList) {
-                try {
-                    const res = await fetch(`${API_URL}/api/groups/${gCode}/info`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                    const data = await res.json();
-                    if(data.success) {
-                        groupMembersCache[gCode] = {};
-                        data.members.forEach(m => { groupMembersCache[gCode][m.code] = m; });
-                    }
-                } catch(e) {}
-            }
-        }
-
-        // HISTORY RESTORE FUNCTION
         async function switchChat(code) {
             if(isMobile()) { document.getElementById('mobile-sidebar').classList.remove('open'); document.getElementById('sidebar-backdrop').style.display = 'none'; }
             activeChat = code; document.querySelectorAll('.friend-item').forEach(i => { i.classList.remove('active'); i.style.boxShadow = "none"; });
@@ -548,16 +565,7 @@
             inputF.value = ''; cancelReply(); 
         };
         inputF.onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
-        
-        function startSystem() { 
-            document.getElementById('my-sidebar-name').textContent = currentUserName; 
-            document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); 
-            refreshLists(); 
-            switchChat('NYELLE_CORE'); 
-            connectWebSocket(); 
-            syncProfiles();
-        }
-        
+        function startSystem() { document.getElementById('my-sidebar-name').textContent = currentUserName; document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp); refreshLists(); switchChat('NYELLE_CORE'); connectWebSocket(); syncProfiles(); }
         function isMobile() { return window.innerWidth < 800; }
         function showTyping(p) { removeTyping(); const w = document.createElement('div'); w.className = 'msg-wrapper msg-nyelle'; w.id = 'typing-indicator'; w.innerHTML = `<div class="bubble-pfp">${renderPfp(p)}</div><div class="toon-bubble nyelle-msg"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`; document.getElementById('chat-content').appendChild(w); document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight; }
         function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
