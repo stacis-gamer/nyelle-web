@@ -154,6 +154,25 @@
         </div>
     </div>
 
+    <div id="edit-profile-overlay" class="overlay" style="display: none;">
+        <div class="auth-box">
+            <h2 style="margin-bottom: 20px;">Edit Profile</h2>
+            
+            <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                <div class="avatar-ring" style="width: 80px; height: 80px; font-size: 30px; position: relative; cursor: pointer; box-shadow: 0 6px 0 var(--accent-shadow);" onclick="document.getElementById('pfp-upload').click()">
+                    <div id="edit-pfp-preview" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">👤</div>
+                    <div style="position: absolute; bottom: -5px; right: -5px; background: var(--bg-dark); border-radius: 50%; padding: 5px; font-size: 14px; border: 2px solid #111;">📷</div>
+                </div>
+                <input type="file" id="pfp-upload" accept="image/*" style="display: none;" onchange="handlePfpUpload(event)">
+            </div>
+
+            <input type="text" id="edit-name-input" class="toon-input" placeholder="Display Name" style="margin-bottom: 25px; padding: 15px; text-align: center; font-size: 18px;">
+            
+            <button onclick="saveProfileChanges()" class="toon-btn" style="width: 100%; margin-bottom: 15px;">SAVE CHANGES</button>
+            <button onclick="document.getElementById('edit-profile-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: #313338; box-shadow: 0 4px 0 #111; border-color: #111;">CANCEL</button>
+        </div>
+    </div>
+
     <div id="search-overlay" class="overlay" style="display: none;">
         <div class="auth-box" style="height: 80vh;">
             <h2>Find Users</h2>
@@ -199,6 +218,7 @@
 
     <div id="my-profile-menu" class="context-menu">
         <div class="menu-info">Account Settings</div>
+        <div class="menu-item" onclick="openEditProfile()">✏️ Edit Profile</div>
         <div class="menu-item danger" onclick="wipeMemory()">🧹 Clear Nyelle Memory</div>
         <div class="menu-item danger" onclick="logOut()">🚪 Log Out</div>
     </div>
@@ -212,7 +232,6 @@
                 <div><h2 style="font-size: 16px;" id="my-sidebar-name">User</h2><p style="color: var(--success); font-size: 12px;">● Online</p></div>
                 
                 <div class="social-icons">
-                    <span onclick="openSearchOverlay()" title="Find Users">🔍</span>
                     <span onclick="alert('Friend requests UI coming soon!')" title="Notifications">🔔<div id="bell-badge" class="unread-badge" style="position:absolute; top:-5px; right:-8px;">0</div></span>
                 </div>
             </div>
@@ -230,6 +249,9 @@
                 <div id="gc-list"></div>
 
                 <div class="section-title" style="margin-top: 20px;">Direct Messages</div>
+                
+                <button onclick="openSearchOverlay()" class="toon-btn" style="width: 100%; margin-bottom: 12px; font-size: 12px; background: #1e1f22; border-color: #111; color: var(--text-main); box-shadow: 0 4px 0 #111;">🔍 FIND USERS</button>
+                
                 <div id="dm-list"></div>
                 
                 <button onclick="document.getElementById('add-friend-overlay').style.display='flex'" class="toon-btn" style="width: 100%; margin-top: 20px; font-size: 12px; background: #1e1f22;">+ JOIN GROUP</button>
@@ -272,8 +294,8 @@
         let API_URL = '', currentUserCode = localStorage.getItem('nyelle_user_code'), currentUserName = localStorage.getItem('nyelle_user_name'), currentUserPfp = localStorage.getItem('nyelle_user_pfp'), ws, activeChat = 'NYELLE_CORE', chatHistories = {}, friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {}, groupsList = JSON.parse(localStorage.getItem('nyelle_groups')) || {}, activeMenuMsgId = null;
         let groupMembersCache = {}; 
         let pingInterval, isReconnecting = false, replyingTo = null;
+        let tempPfpData = null; // Used for the edit profile overlay
 
-        // 1. THE FULL CONFIG (With authDomain!)
         const firebaseConfig = { 
             apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs", 
             authDomain: "zane-c0ce1.firebaseapp.com",
@@ -281,10 +303,8 @@
             appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c" 
         };
         
-        // 2. INITIALIZE FIREBASE (This was missing!)
         firebase.initializeApp(firebaseConfig);
 
-        // 3. SETUP REMOTE CONFIG (This was missing!)
         const remoteConfig = firebase.remoteConfig();
         remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
@@ -306,7 +326,7 @@
             backdrop.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
         }
 
-        // --- DIAGNOSTIC GOOGLE AUTH LOGIN ---
+        // --- GOOGLE AUTH LOGIN ---
         document.getElementById('google-login-btn').onclick = async () => {
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
@@ -338,6 +358,51 @@
                 document.getElementById('login-error').textContent = "Auth Failed (See Alert Box)"; 
             }
         };
+
+        // --- NEW EDIT PROFILE LOGIC ---
+        function openEditProfile() {
+            document.getElementById('my-profile-menu').style.display = 'none';
+            document.getElementById('edit-name-input').value = currentUserName;
+            document.getElementById('edit-pfp-preview').innerHTML = renderPfp(currentUserPfp);
+            tempPfpData = currentUserPfp;
+            document.getElementById('edit-profile-overlay').style.display = 'flex';
+        }
+
+        function handlePfpUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    tempPfpData = e.target.result;
+                    document.getElementById('edit-pfp-preview').innerHTML = `<img src="${tempPfpData}" style="width:100%; height:100%; object-fit:cover;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function saveProfileChanges() {
+            const newName = document.getElementById('edit-name-input').value.trim();
+            if (!newName) return alert("Name cannot be empty!");
+            
+            currentUserName = newName;
+            currentUserPfp = tempPfpData;
+            
+            localStorage.setItem('nyelle_user_name', currentUserName);
+            localStorage.setItem('nyelle_user_pfp', currentUserPfp);
+            
+            document.getElementById('my-sidebar-name').textContent = currentUserName;
+            document.getElementById('my-sidebar-pfp').innerHTML = renderPfp(currentUserPfp);
+            
+            document.getElementById('edit-profile-overlay').style.display = 'none';
+            
+            try {
+                await fetch(`${API_URL}/api/user/${currentUserCode}/profile`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, 
+                    body: JSON.stringify({ pfp: currentUserPfp }) 
+                });
+            } catch(e) { console.error("Failed to sync PFP to server", e); }
+        }
 
         function showToast(pfpUrl, title, message, onClickCb) {
             const container = document.getElementById('toast-container');
