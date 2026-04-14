@@ -273,11 +273,14 @@
         let groupMembersCache = {}; 
         let pingInterval, isReconnecting = false, replyingTo = null;
 
-        const firebaseConfig = { apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs", projectId: "zane-c0ce1", appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c" };
-        firebase.initializeApp(firebaseConfig);
-        const remoteConfig = firebase.remoteConfig();
-        remoteConfig.settings.minimumFetchIntervalMillis = 0;
-
+       // UPDATED CONFIG WITH AUTH DOMAIN
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs", 
+            authDomain: "zane-c0ce1.firebaseapp.com", // <--- THE MISSING PIECE
+            projectId: "zane-c0ce1", 
+            appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c" 
+        };
+        
         async function init() {
             try {
                 await remoteConfig.fetchAndActivate();
