@@ -273,14 +273,21 @@
         let groupMembersCache = {}; 
         let pingInterval, isReconnecting = false, replyingTo = null;
 
-       // UPDATED CONFIG WITH AUTH DOMAIN
+        // 1. THE FULL CONFIG (With authDomain!)
         const firebaseConfig = { 
             apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs", 
-            authDomain: "zane-c0ce1.firebaseapp.com", // <--- THE MISSING PIECE
+            authDomain: "zane-c0ce1.firebaseapp.com",
             projectId: "zane-c0ce1", 
             appId: "1:466750964965:web:4f2ca5b67d2c55cd50c00c" 
         };
         
+        // 2. INITIALIZE FIREBASE (This was missing!)
+        firebase.initializeApp(firebaseConfig);
+
+        // 3. SETUP REMOTE CONFIG (This was missing!)
+        const remoteConfig = firebase.remoteConfig();
+        remoteConfig.settings.minimumFetchIntervalMillis = 0;
+
         async function init() {
             try {
                 await remoteConfig.fetchAndActivate();
