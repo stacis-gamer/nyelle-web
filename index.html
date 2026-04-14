@@ -173,19 +173,6 @@
         </div>
     </div>
 
-    <div id="search-overlay" class="overlay" style="display: none;">
-        <div class="auth-box" style="height: 80vh;">
-            <h2>Find Users</h2>
-            <input type="text" id="search-input" class="toon-input" placeholder="Search Names or UID..." style="margin: 15px 0; padding: 12px;">
-            
-            <div id="search-results" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: var(--bg-panel); padding: 10px; border-radius: 10px; text-align: left;">
-                <div style="text-align:center; color:var(--text-muted); margin-top: 20px;">Type to search...</div>
-            </div>
-
-            <button onclick="document.getElementById('search-overlay').style.display='none'" class="toon-btn" style="width: 100%; background: #313338; box-shadow: 0 4px 0 #111; margin-top: 15px;">CLOSE</button>
-        </div>
-    </div>
-
     <div id="add-friend-overlay" class="overlay" style="display: none;">
         <div class="auth-box">
             <h2>Join Group</h2>
@@ -250,7 +237,7 @@
 
                 <div class="section-title" style="margin-top: 20px;">Direct Messages</div>
                 
-                <button onclick="openSearchOverlay()" class="toon-btn" style="width: 100%; margin-bottom: 12px; font-size: 12px; background: #1e1f22; border-color: #111; color: var(--text-main); box-shadow: 0 4px 0 #111;">🔍 FIND USERS</button>
+                <button onclick="openSearchView()" class="toon-btn" style="width: 100%; margin-bottom: 12px; font-size: 12px; background: #1e1f22; border-color: #111; color: var(--text-main); box-shadow: 0 4px 0 #111;">🔍 FIND USERS</button>
                 
                 <div id="dm-list"></div>
                 
@@ -259,30 +246,48 @@
         </aside>
 
         <main class="main-chat">
-            <header class="mobile-header">
-                <div class="hamburger" onclick="toggleSidebar()">☰</div>
-                <div class="avatar-ring" style="width: 35px; height: 35px; cursor: default;" id="mob-pfp">N</div>
-                <h2 style="font-size: 16px; margin-left:10px; display:flex; align-items:center; gap:10px; flex:1;">
-                    <span id="mob-name">Nyelle</span>
-                    <span id="gc-info-btn" style="display:none; font-size:11px; cursor:pointer; background:var(--accent); color:white; padding:4px 8px; border-radius:10px; font-weight:bold; box-shadow:0 2px 0 var(--accent-shadow);" onclick="showGroupInfo()">👥 INFO</span>
-                </h2>
-            </header>
-            <div class="chat-container" id="chat-box"><div class="chat-content" id="chat-content"></div></div>
             
-            <div class="input-wrapper">
-                <div id="reply-preview" class="reply-preview">
-                    <div style="display: flex; flex-direction: column; overflow: hidden; width: 90%;">
-                        <span id="reply-preview-sender" style="color: var(--accent-highlight); font-weight: bold; font-size: 12px; margin-bottom: 2px;">Replying to...</span>
-                        <span id="reply-preview-text" style="color: var(--text-muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">...</span>
-                    </div>
-                    <div onclick="cancelReply()" style="cursor: pointer; color: var(--text-muted); font-weight: 900; font-size: 16px; padding: 5px;">✕</div>
-                </div>
+            <div id="chat-wrapper" style="display: flex; flex-direction: column; height: 100%; width: 100%;">
+                <header class="mobile-header">
+                    <div class="hamburger" onclick="toggleSidebar()">☰</div>
+                    <div class="avatar-ring" style="width: 35px; height: 35px; cursor: default;" id="mob-pfp">N</div>
+                    <h2 style="font-size: 16px; margin-left:10px; display:flex; align-items:center; gap:10px; flex:1;">
+                        <span id="mob-name">Nyelle</span>
+                        <span id="gc-info-btn" style="display:none; font-size:11px; cursor:pointer; background:var(--accent); color:white; padding:4px 8px; border-radius:10px; font-weight:bold; box-shadow:0 2px 0 var(--accent-shadow);" onclick="showGroupInfo()">👥 INFO</span>
+                    </h2>
+                </header>
+                <div class="chat-container" id="chat-box"><div class="chat-content" id="chat-content"></div></div>
                 
-                <div class="input-container">
-                    <input type="text" id="user-input" class="toon-input" placeholder="Message..." autocomplete="off">
-                    <button id="send-btn" class="toon-btn">SEND</button>
+                <div class="input-wrapper">
+                    <div id="reply-preview" class="reply-preview">
+                        <div style="display: flex; flex-direction: column; overflow: hidden; width: 90%;">
+                            <span id="reply-preview-sender" style="color: var(--accent-highlight); font-weight: bold; font-size: 12px; margin-bottom: 2px;">Replying to...</span>
+                            <span id="reply-preview-text" style="color: var(--text-muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">...</span>
+                        </div>
+                        <div onclick="cancelReply()" style="cursor: pointer; color: var(--text-muted); font-weight: 900; font-size: 16px; padding: 5px;">✕</div>
+                    </div>
+                    
+                    <div class="input-container">
+                        <input type="text" id="user-input" class="toon-input" placeholder="Message..." autocomplete="off">
+                        <button id="send-btn" class="toon-btn">SEND</button>
+                    </div>
                 </div>
             </div>
+
+            <div id="search-wrapper" style="display: none; flex-direction: column; height: 100%; width: 100%;">
+                <header class="mobile-header">
+                    <div class="hamburger" onclick="toggleSidebar()">☰</div>
+                    <h2 style="font-size: 16px; margin-left:10px; flex: 1;">Find Users</h2>
+                </header>
+                <div style="padding: 20px; display: flex; flex-direction: column; height: 100%; max-width: 800px; margin: 0 auto; width: 100%;">
+                    <input type="text" id="main-search-input" class="toon-input" placeholder="Search Names or UID..." style="padding: 15px; margin-bottom: 20px; width: 100%; font-size: 18px;">
+                    <h3 style="color: var(--text-muted); font-size: 13px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Suggested / Results</h3>
+                    
+                    <div id="main-search-results" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px;">
+                        </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -294,7 +299,7 @@
         let API_URL = '', currentUserCode = localStorage.getItem('nyelle_user_code'), currentUserName = localStorage.getItem('nyelle_user_name'), currentUserPfp = localStorage.getItem('nyelle_user_pfp'), ws, activeChat = 'NYELLE_CORE', chatHistories = {}, friendsList = JSON.parse(localStorage.getItem('nyelle_friends')) || {}, groupsList = JSON.parse(localStorage.getItem('nyelle_groups')) || {}, activeMenuMsgId = null;
         let groupMembersCache = {}; 
         let pingInterval, isReconnecting = false, replyingTo = null;
-        let tempPfpData = null; // Used for the edit profile overlay
+        let tempPfpData = null;
 
         const firebaseConfig = { 
             apiKey: "AIzaSyCwwIWNcBIPmA_Iad_I07y3LD4e4M8TLxs", 
@@ -359,7 +364,7 @@
             }
         };
 
-        // --- NEW EDIT PROFILE LOGIC ---
+        // --- EDIT PROFILE LOGIC ---
         function openEditProfile() {
             document.getElementById('my-profile-menu').style.display = 'none';
             document.getElementById('edit-name-input').value = currentUserName;
@@ -432,37 +437,55 @@
             }
         }
 
+        // --- NEW FULL-PAGE SEARCH LOGIC ---
         let searchTimeout;
-        function openSearchOverlay() { document.getElementById('search-overlay').style.display = 'flex'; document.getElementById('search-input').focus(); }
-        document.getElementById('search-input').oninput = (e) => {
-            clearTimeout(searchTimeout);
-            const query = e.target.value.trim();
-            const resultsBox = document.getElementById('search-results');
-            if(query.length < 2) { resultsBox.innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Type to search...</div>'; return; }
+        
+        function openSearchView() {
+            if(isMobile()) { document.getElementById('mobile-sidebar').classList.remove('open'); document.getElementById('sidebar-backdrop').style.display = 'none'; }
             
-            resultsBox.innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Searching...</div>';
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const res = await fetch(`${API_URL}/api/users/search?query=${query}&current_uid=${currentUserCode}`, {headers:{'ngrok-skip-browser-warning':'true'}});
-                    const data = await res.json();
-                    resultsBox.innerHTML = '';
-                    if(data.results.length === 0) { resultsBox.innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">No users found.</div>'; return; }
-                    
-                    data.results.forEach(u => {
-                        resultsBox.innerHTML += `
-                            <div style="display:flex; align-items:center; gap:10px; background:var(--bg-dark); padding:10px; border-radius:8px; border:1px solid #111;">
-                                <div class="avatar-mini">${renderPfp(u.pfp)}</div>
-                                <div style="flex:1;">
-                                    <div style="font-weight:bold; font-size:14px;">${u.name}</div>
-                                    <div style="font-size:10px; color:var(--text-muted);">${u.uid}</div>
-                                </div>
-                                <button onclick="sendFriendRequest('${u.uid}')" style="background:var(--success); color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">ADD</button>
-                            </div>
-                        `;
-                    });
-                } catch(err) {}
-            }, 500);
+            document.querySelectorAll('.friend-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById('chat-wrapper').style.display = 'none';
+            document.getElementById('search-wrapper').style.display = 'flex';
+            
+            document.getElementById('main-search-input').value = '';
+            document.getElementById('main-search-input').focus();
+            
+            // Trigger an empty search to load all suggested users!
+            triggerSearch('');
+        }
+
+        document.getElementById('main-search-input').oninput = (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => triggerSearch(e.target.value.trim()), 400);
         };
+
+        async function triggerSearch(query) {
+            const resultsBox = document.getElementById('main-search-results');
+            resultsBox.innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">Loading users...</div>';
+            try {
+                const res = await fetch(`${API_URL}/api/users/search?query=${query}&current_uid=${currentUserCode}`, {headers:{'ngrok-skip-browser-warning':'true'}});
+                const data = await res.json();
+                resultsBox.innerHTML = '';
+                
+                if(data.results.length === 0) { resultsBox.innerHTML = '<div style="text-align:center; color:#888; margin-top:20px;">No users found.</div>'; return; }
+                
+                data.results.forEach(u => {
+                    resultsBox.innerHTML += `
+                        <div style="display:flex; align-items:center; gap:15px; background:var(--bg-dark); padding:15px; border-radius:12px; border:2px solid #111; box-shadow: 0 4px 0 rgba(0,0,0,0.2);">
+                            <div class="avatar-mini" style="width:45px; height:45px;">${renderPfp(u.pfp)}</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:bold; font-size:16px;">${u.name}</div>
+                                <div style="font-size:12px; color:var(--text-muted); font-family: monospace;">UID: ${u.uid}</div>
+                            </div>
+                            <button onclick="sendFriendRequest('${u.uid}')" class="toon-btn" style="padding: 8px 16px; font-size: 13px; box-shadow: 0 4px 0 var(--accent-shadow);">ADD</button>
+                        </div>
+                    `;
+                });
+            } catch(err) {
+                resultsBox.innerHTML = '<div style="text-align:center; color:var(--danger); margin-top:20px;">Failed to load users.</div>';
+            }
+        }
 
         async function sendFriendRequest(targetUid) {
             try {
@@ -676,8 +699,14 @@
         function applyReactionToUI(id, emoji) { const b = document.getElementById(`msg-${id}`); if (!b) return; let badge = b.querySelector('.react-badge'); if(!badge) { badge = document.createElement('div'); badge.className = 'react-badge'; b.appendChild(badge); } badge.textContent = emoji; }
         function deleteMessage() { if (activeMenuMsgId) document.getElementById(`msg-${activeMenuMsgId}`).closest('.msg-wrapper').remove(); }
 
+        // --- NEW VIEW SWITCHING LOGIC ---
         async function switchChat(code) {
             if(isMobile()) { document.getElementById('mobile-sidebar').classList.remove('open'); document.getElementById('sidebar-backdrop').style.display = 'none'; }
+            
+            // Re-hide search view, show chat view
+            document.getElementById('search-wrapper').style.display = 'none';
+            document.getElementById('chat-wrapper').style.display = 'flex';
+
             activeChat = code; document.querySelectorAll('.friend-item').forEach(i => { i.classList.remove('active'); });
             document.getElementById(`friend-${code}`)?.classList.add('active'); 
             
